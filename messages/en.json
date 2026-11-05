@@ -44,12 +44,12 @@
   },
   "howToUse": {
     "title": "How to use Open in Nusuk",
-    "step1": "Open the Nusuk app and stay on the Homepage.",
-    "step2": "Come back here and tap Open in Nusuk. It can open to the Your Keys page, with the code already filled in.",
-    "step3": "Tap Check the code.",
-    "step4": "When the Congratulations page shows, stay on it. Don't tap Check it now or go back.",
-    "step5": "Come back here and tap Open in Nusuk + The next code. Nusuk opens the Your Keys page again.",
-    "footnote": "*We update applied keys as if it is written in stone in months. Add codes to get new keys too."
+    "step1": "Open the Nusuk app on your phone and stay on the Home page.",
+    "step2": "Come back here and tap Open in Nusuk. It opens the Nusuk service page with the code already filled in.",
+    "step3": "In Nusuk, go to the Keys tab and paste the code into the 'Add code' box, then tap Check the code.",
+    "step4": "When the Congratulations screen appears, stay on it — do not tap back or close the app.",
+    "step5": "Return here and tap Open in Nusuk on the next code. Repeat for every extra key you want.",
+    "footnote": "Tip: Copy the code first as a backup if the deep link opens the wrong screen."
   },
   "moreCodes": {
     "title": "More codes",

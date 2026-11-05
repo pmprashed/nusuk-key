@@ -10,7 +10,7 @@ Nusuk Key gives participants a fair rotation of fresh codes, one-tap copy, deep-
 
 - **Fair Code Rotation:** Codes are served in order of lowest usage with random tie-breaks to ensure every user's code gets fair exposure.
 - **Instant Copy & Swap:** When a code is copied, it is automatically swapped in place with a fresh code from the database.
-- **Deep Link Integration:** Direct deep-link support to the official Nusuk app (`NUSUK_DEEP_LINK_TEMPLATE`). Safely hidden if unconfigured.
+- **Deep Link Integration:** "Open in Nusuk" button links directly to the official Nusuk service (`https://services.nusuk.sa/app?p=27&id={code}`), where `{code}` is substituted with the active key (e.g., `NG-CXEVbXwR`).
 - **Device-Only Copied Codes:** Codes copied on each device are tracked locally in `localStorage` with a 2-tap problem report menu ("Nusuk says already used", "Nusuk says not correct").
 - **Automatic Bad Code Removal:** Codes receiving 2 independent reports are automatically removed from public rotation.
 - **Abuse Prevention:** Submitter and reporter rate limiting (3 submissions per day, 60 copy/report events per hour) using salted SHA-256 hashes of IP and User-Agent. No raw IPs are ever stored.
@@ -52,13 +52,14 @@ git push -u origin main
 2. Import your GitHub repository.
 3. In **Environment Variables**, add the following keys:
 
-| Variable | Description | Example |
+| Variable | Description | Value |
 | :--- | :--- | :--- |
 | `SUPABASE_URL` | Your Supabase project URL | `https://xyzproject.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role secret key | `eyJhbGciOi...` |
 | `HASH_SALT` | Random string for salted SHA-256 device hashing | `long_random_salt_12345678` |
 | `NEXT_PUBLIC_SITE_URL` | Your public domain | `https://nusukkey.com` |
-| `NUSUK_DEEP_LINK_TEMPLATE` | *(Optional)* Deep link scheme | `nusuk://competition?code={code}` |
+| `NEXT_PUBLIC_NUSUK_DEEP_LINK_TEMPLATE` | Confirmed Nusuk deep link (pre-configured) | `https://services.nusuk.sa/app?p=27&id={code}` |
+| `NUSUK_DEEP_LINK_TEMPLATE` | Same as above (server-side) | `https://services.nusuk.sa/app?p=27&id={code}` |
 
 4. Click **Deploy**. Vercel will build and deploy the app in under 2 minutes.
 
