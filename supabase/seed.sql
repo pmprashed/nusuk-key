@@ -1,8 +1,7 @@
-
 INSERT INTO public.codes (code, display_name, use_count, status)
 VALUES
   ('NG-CXEVbXwR', 'Rashed', 200, 'active'),
-  ('NG-0T7hIPaU', 'Key 1', 10, 'active')
+  ('NG-0T7hIPaU', 'Key 1', 10, 'active'),
   ('NG-1OAsde5G', 'Key 2', 10, 'active'),
   ('NG-1akEAHuB', 'Key 3', 10, 'active'),
   ('NG-1rXwRlIu', 'Key 4', 10, 'active'),
@@ -30,7 +29,6 @@ VALUES
   ('NG-Au1o7GIA', 'Key 26', 10, 'active'),
   ('NG-B7SBJ2B4', 'Key 27', 10, 'active'),
   ('NG-BzOi5jCI', 'Key 28', 10, 'active'),
-  ('NG-CXEVbXwR', 'Key 29', 10, 'active'),
   ('NG-D22cJu0a', 'Key 30', 10, 'active'),
   ('NG-DOQY3Fzj', 'Key 31', 10, 'active'),
   ('NG-DTrRy5Bb', 'Key 32', 10, 'active'),
@@ -134,6 +132,3 @@ VALUES
   ('NG-zRQSDC8N', 'Key 130', 10, 'active')
 ON CONFLICT (code) DO UPDATE
   SET status = 'active';
-
-
-
