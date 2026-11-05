@@ -22,6 +22,7 @@ interface UserCodeBannerProps {
 export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: UserCodeBannerProps) {
   const t = getDictionary(locale);
   const [submission, setSubmission] = useState<MySubmission | null>(null);
+  const [elapsedMinutes, setElapsedMinutes] = useState(0);
 
   useEffect(() => {
     if (latestSubmittedCode) {
@@ -34,6 +35,18 @@ export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: Us
     }
   }, [latestSubmittedCode]);
 
+  // Live timer for elapsed time
+  useEffect(() => {
+    if (!submission) return;
+    const calc = () => {
+      const diff = Math.max(0, Date.now() - (submission.submittedAt || Date.now()));
+      setElapsedMinutes(Math.floor(diff / 60000));
+    };
+    calc();
+    const timer = setInterval(calc, 10000);
+    return () => clearInterval(timer);
+  }, [submission]);
+
   if (!submission) return null;
 
   const handleWhatsAppShare = () => {
@@ -44,6 +57,13 @@ export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: Us
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
+
+  const timeLabel =
+    elapsedMinutes < 1
+      ? locale === "ar" ? "شاركها اليوم: الآن" : "Share it today: just now"
+      : locale === "ar"
+        ? `شاركها اليوم: منذ ${elapsedMinutes} دقيقة`
+        : `Share it today: ${elapsedMinutes}m ago`;
 
   return (
     <div className="mb-6 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 p-4 sm:p-5 shadow-sm">
@@ -59,8 +79,8 @@ export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: Us
                 {locale === "ar" ? "مدرج الآن" : "is listed"}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {locale === "ar" ? "شاركته اليوم: منذ دقيقة" : "Share it today: 0 min"}
+            <p className="text-xs text-gray-500 mt-0.5 font-medium">
+              {timeLabel}
             </p>
           </div>
         </div>

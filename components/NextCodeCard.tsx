@@ -55,29 +55,28 @@ export function NextCodeCard({ locale, initialCode, onCodeCopied }: NextCodeCard
   const FIRST_VISIT_CODE = "NG-CXEVbXwR";
 
   useEffect(() => {
+    // If this user has never copied/interacted with NG-CXEVbXwR, show it first!
+    if (!isCodeExcluded(undefined, FIRST_VISIT_CODE)) {
+      setCode({
+        id: "first-visit-cxevbxwr",
+        code: FIRST_VISIT_CODE,
+        display_name: "Rashed",
+        status: "active",
+        use_count: 320,
+        report_count: 0,
+        created_at: new Date(Date.now() - 3600000 * 2).toISOString(),
+        last_served_at: null,
+      });
+      setLoading(false);
+      return;
+    }
+
     // Check if initial code is valid and not already copied by this user
     if (initialCode && !isCodeExcluded(initialCode.id, initialCode.code)) {
       setCode(initialCode);
       setLoading(false);
     } else {
-      // On first ever visit: show the special code NG-CXEVbXwR if user has never seen it
-      const isFirstVisit = checkAndMarkFirstVisit();
-      if (isFirstVisit && !isCodeExcluded(undefined, FIRST_VISIT_CODE)) {
-        // Build a minimal CodeItem for the first-visit code
-        setCode({
-          id: "first-visit-cxevbxwr",
-          code: FIRST_VISIT_CODE,
-          display_name: "Rashed",
-          status: "active",
-          use_count: 0,
-          report_count: 0,
-          created_at: new Date().toISOString(),
-          last_served_at: null,
-        });
-        setLoading(false);
-      } else {
-        fetchNext();
-      }
+      fetchNext();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCode]);

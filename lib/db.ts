@@ -148,6 +148,37 @@ export async function getCodes(params: {
 }
 
 export async function getNextCode(deviceHash?: string, exclude?: string[]): Promise<CodeItem | null> {
+  const FIRST_CODE = "NG-CXEVbXwR";
+  const excludeLower = (exclude || []).map((x) => x.toLowerCase());
+
+  // If user has not excluded NG-CXEVbXwR yet, always serve it as the very first code!
+  if (!excludeLower.includes(FIRST_CODE.toLowerCase())) {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        const { data } = await supabase
+          .from("codes")
+          .select("*")
+          .ilike("code", FIRST_CODE)
+          .eq("status", "active")
+          .maybeSingle();
+
+        if (data) {
+          return data;
+        }
+      } catch {
+        // fallback to memory
+      }
+    }
+
+    const firstFromMemory = memoryStore.codes.find(
+      (c) => c.code.toLowerCase() === FIRST_CODE.toLowerCase() && c.status === "active"
+    );
+    if (firstFromMemory) {
+      return firstFromMemory;
+    }
+  }
+
   const codes = await getCodes({ limit: 1, deviceHash, exclude });
   return codes[0] || null;
 }
