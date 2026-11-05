@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
 
     if (result.error === "limit_exceeded") {
       return NextResponse.json(
-        { error: "Daily limit reached. Each user can submit up to 3 codes per 24 hours." },
+        { error: "Daily limit reached. Each user can submit up to 10 codes per 24 hours." },
         { status: 429 }
       );
     }

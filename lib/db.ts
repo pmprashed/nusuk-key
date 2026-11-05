@@ -153,17 +153,23 @@ export async function addCode(params: {
 
   if (supabase) {
     try {
-      // Check daily submission limit (3 per day)
-      const { count: dailyCount, error: countErr } = await supabase
-        .from("submissions")
-        .select("*", { count: "exact", head: true })
-        .eq("submitter_hash", params.submitterHash)
-        .gte("created_at", oneDayAgo);
+      // Daily submission limit: updated to 10 per day, paused for 25 days until Nov 30, 2026
+      const DAILY_SUBMISSION_LIMIT = 10;
+      const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
+      const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
 
-      if (countErr) {
-        console.error("Error checking daily submission limit:", countErr);
-      } else if ((dailyCount ?? 0) >= 3) {
-        return { error: "limit_exceeded" };
+      if (!isLimitPaused) {
+        const { count: dailyCount, error: countErr } = await supabase
+          .from("submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("submitter_hash", params.submitterHash)
+          .gte("created_at", oneDayAgo);
+
+        if (countErr) {
+          console.error("Error checking daily submission limit:", countErr);
+        } else if ((dailyCount ?? 0) >= DAILY_SUBMISSION_LIMIT) {
+          return { error: "limit_exceeded" };
+        }
       }
 
       // Check if code already listed
@@ -207,12 +213,18 @@ export async function addCode(params: {
   }
 
   // Memory fallback
-  const userSubmissionsLast24h = memoryStore.submissions.filter(
-    (s) => s.submitter_hash === params.submitterHash && s.created_at >= oneDayAgo
-  ).length;
+  const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
+  const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
+  const DAILY_SUBMISSION_LIMIT = 10;
 
-  if (userSubmissionsLast24h >= 3) {
-    return { error: "limit_exceeded" };
+  if (!isLimitPaused) {
+    const userSubmissionsLast24h = memoryStore.submissions.filter(
+      (s) => s.submitter_hash === params.submitterHash && s.created_at >= oneDayAgo
+    ).length;
+
+    if (userSubmissionsLast24h >= DAILY_SUBMISSION_LIMIT) {
+      return { error: "limit_exceeded" };
+    }
   }
 
   const existing = memoryStore.codes.find((c) => c.code === extractedCode);

@@ -78,7 +78,7 @@
     "submitting": "Checking code...",
     "errorNoCode": "Could not find a valid NG- code (NG- followed by 8 characters).",
     "errorDuplicate": "This code is already listed in the rotation.",
-    "errorLimit": "You have reached the daily submission limit (3 codes per day).",
+    "errorLimit": "You have reached the daily submission limit (10 codes per day).",
     "errorGeneric": "Something went wrong. Please check your code and try again.",
     "successTitle": "Your code is listed!",
     "successCode": "{{code}} is listed",
