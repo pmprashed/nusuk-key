@@ -3,7 +3,8 @@
 
 INSERT INTO public.codes (code, display_name, use_count, status)
 VALUES
-  ('NG-0T7hIPaU', 'Nusuk Pilgrim 1', 0, 'active'),
+  ('NG-CXEVbXwR', 'Rashed', 0, 'active'),
+  ('NG-0T7hIPaU', 'Nusuk Pilgrim 1', 1, 'active')
   ('NG-1OAsde5G', 'Nusuk Pilgrim 2', 3, 'active'),
   ('NG-1akEAHuB', 'Nusuk Pilgrim 3', 1, 'active'),
   ('NG-1rXwRlIu', 'Nusuk Pilgrim 4', 3, 'active'),
