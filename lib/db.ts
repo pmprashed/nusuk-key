@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { CodeItem, EventType, ReportType, StatsResponse } from "./types";
-import { INITIAL_FALLBACK_CODES } from "./initial-codes";
+import { INITIAL_FALLBACK_CODES, INITIAL_CODES_DATA } from "./initial-codes";
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey =
@@ -60,6 +60,8 @@ export async function getCodes(params: {
     try {
       // 1. Find codes reported by this device
       let reportedIds: string[] = [];
+      let interactedIds: string[] = [];
+
       if (params.deviceHash) {
         const { data: userReports } = await supabase
           .from("reports")
@@ -68,9 +70,18 @@ export async function getCodes(params: {
         if (userReports) {
           reportedIds = userReports.map((r: { code_id: string }) => r.code_id);
         }
+
+        // Exclude codes this user has already copied or opened
+        const { data: userEvents } = await supabase
+          .from("code_events")
+          .select("code_id")
+          .eq("device_hash", params.deviceHash);
+        if (userEvents) {
+          interactedIds = userEvents.map((e: { code_id: string }) => e.code_id);
+        }
       }
 
-      const allExcluded = [...Array.from(excludeSet), ...reportedIds];
+      const allExcluded = Array.from(new Set([...Array.from(excludeSet), ...reportedIds, ...interactedIds]));
 
       let query = supabase
         .from("codes")
@@ -109,13 +120,17 @@ export async function getCodes(params: {
     }
   }
 
-  // Memory fallback using the 130 verified Nusuk referral codes
+  // Memory fallback: filter out reported, interacted, and excluded codes
   const reportedIds = params.deviceHash
     ? new Set(memoryStore.reports.filter((r) => r.reporter_hash === params.deviceHash).map((r) => r.code_id))
     : new Set<string>();
 
+  const interactedIds = params.deviceHash
+    ? new Set(memoryStore.codeEvents.filter((e) => e.device_hash === params.deviceHash).map((e) => e.code_id))
+    : new Set<string>();
+
   const eligible = memoryStore.codes.filter(
-    (c) => c.status === "active" && !excludeSet.has(c.id) && !reportedIds.has(c.id)
+    (c) => c.status === "active" && !excludeSet.has(c.id) && !reportedIds.has(c.id) && !interactedIds.has(c.id)
   );
 
   eligible.sort((a, b) => {
@@ -132,8 +147,8 @@ export async function getCodes(params: {
   return selected;
 }
 
-export async function getNextCode(deviceHash?: string): Promise<CodeItem | null> {
-  const codes = await getCodes({ limit: 1, deviceHash });
+export async function getNextCode(deviceHash?: string, exclude?: string[]): Promise<CodeItem | null> {
+  const codes = await getCodes({ limit: 1, deviceHash, exclude });
   return codes[0] || null;
 }
 
@@ -143,21 +158,26 @@ export async function addCode(params: {
   submitterHash: string;
 }): Promise<{ code?: CodeItem; error?: string }> {
   // Extract first match of NG-[A-Za-z0-9]{8}
-  const match = params.text.match(/NG-[A-Za-z0-9]{8}/);
+  const match = params.text.match(/NG-[A-Za-z0-9]{8}/i);
   if (!match) {
     return { error: "invalid_format" };
   }
-  const extractedCode = match[0];
+  const extractedCode = match[0].toUpperCase();
   const supabase = getSupabaseClient();
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
+  // Strict Lifetime Duplicate Check: Check against initial list
+  if (INITIAL_CODES_DATA.some((c) => c.toUpperCase() === extractedCode)) {
+    return { error: "duplicate" };
+  }
+
+  // Daily submission limit updated to 10 (paused for 25 days until Nov 30, 2026)
+  const DAILY_SUBMISSION_LIMIT = 10;
+  const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
+  const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
+
   if (supabase) {
     try {
-      // Daily submission limit: updated to 10 per day, paused for 25 days until Nov 30, 2026
-      const DAILY_SUBMISSION_LIMIT = 10;
-      const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
-      const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
-
       if (!isLimitPaused) {
         const { count: dailyCount, error: countErr } = await supabase
           .from("submissions")
@@ -172,11 +192,11 @@ export async function addCode(params: {
         }
       }
 
-      // Check if code already listed
+      // Check if code already listed (strictly case-insensitive)
       const { data: existing } = await supabase
         .from("codes")
         .select("id")
-        .eq("code", extractedCode)
+        .ilike("code", extractedCode)
         .maybeSingle();
 
       if (existing) {
@@ -197,6 +217,9 @@ export async function addCode(params: {
         .single();
 
       if (insertErr || !newCode) {
+        if (insertErr?.code === "23505" || insertErr?.message?.includes("unique")) {
+          return { error: "duplicate" };
+        }
         console.error("Error inserting code:", insertErr);
         return { error: "insert_failed" };
       }
@@ -207,27 +230,30 @@ export async function addCode(params: {
       });
 
       return { code: newCode };
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.code === "23505" || e?.message?.includes("unique")) {
+        return { error: "duplicate" };
+      }
       console.error("Error adding code to Supabase:", e);
     }
   }
 
   // Memory fallback
-  const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
-  const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
-  const DAILY_SUBMISSION_LIMIT = 10;
+  const LIMIT_PAUSED_UNTIL_MEM = new Date("2026-11-30T23:59:59.999Z").getTime();
+  const isLimitPausedMem = Date.now() < LIMIT_PAUSED_UNTIL_MEM;
+  const DAILY_SUBMISSION_LIMIT_MEM = 10;
 
-  if (!isLimitPaused) {
+  if (!isLimitPausedMem) {
     const userSubmissionsLast24h = memoryStore.submissions.filter(
       (s) => s.submitter_hash === params.submitterHash && s.created_at >= oneDayAgo
     ).length;
 
-    if (userSubmissionsLast24h >= DAILY_SUBMISSION_LIMIT) {
+    if (userSubmissionsLast24h >= DAILY_SUBMISSION_LIMIT_MEM) {
       return { error: "limit_exceeded" };
     }
   }
 
-  const existing = memoryStore.codes.find((c) => c.code === extractedCode);
+  const existing = memoryStore.codes.find((c) => c.code.toUpperCase() === extractedCode);
   if (existing) {
     return { error: "duplicate" };
   }

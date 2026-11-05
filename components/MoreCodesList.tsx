@@ -5,7 +5,7 @@ import { Copy, ExternalLink, RefreshCw, Check } from "lucide-react";
 import { Locale, getDictionary } from "@/lib/i18n";
 import { CodeItem } from "@/lib/types";
 import { copyToClipboard, getNusukDeepLink } from "@/lib/clipboard";
-import { saveCopiedCode, getReportedIds, getCopiedCodes } from "@/lib/storage";
+import { saveCopiedCode, getAllExcludedIds, isCodeExcluded } from "@/lib/storage";
 import { showToast } from "./Toast";
 
 interface MoreCodesListProps {
@@ -49,22 +49,35 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
     fetchBatch([]);
   }, []);
 
+  // Listen for global code copy events so this list immediately purges copied codes
+  useEffect(() => {
+    const handleGlobalCopy = (e: any) => {
+      const detail = e.detail;
+      if (detail) {
+        setCodes((prev) => prev.filter((c) => c.id !== detail.id && c.code !== detail.code));
+      }
+    };
+    window.addEventListener("nusuk:code_copied", handleGlobalCopy);
+    return () => window.removeEventListener("nusuk:code_copied", handleGlobalCopy);
+  }, []);
+
   async function fetchBatch(currentExclude: string[] = []) {
     try {
       setRefreshing(true);
-      const reportedIds = Array.from(getReportedIds());
-      const copiedList = getCopiedCodes().map((c) => c.id);
-      const allExclude = Array.from(new Set([...currentExclude, ...reportedIds, ...copiedList]));
+      const allExcluded = Array.from(new Set([...currentExclude, ...getAllExcludedIds()]));
 
       const query = new URLSearchParams({
         limit: "20",
-        ...(allExclude.length > 0 ? { exclude: allExclude.join(",") } : {}),
+        ...(allExcluded.length > 0 ? { exclude: allExcluded.join(",") } : {}),
       });
 
       const res = await fetch(`/api/codes?${query.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setCodes(data.codes || []);
+        const incoming: CodeItem[] = data.codes || [];
+        // Strict filter against lifetime excluded codes
+        const clean = incoming.filter((c) => !isCodeExcluded(c.id, c.code));
+        setCodes(clean);
       }
     } catch (err) {
       console.error("Error fetching more codes:", err);
@@ -74,13 +87,11 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
     }
   }
 
-  // Swap a single row in place when copied
+  // Swap a single row in place when copied with a fresh un-seen code
   async function swapRow(index: number, oldCode: CodeItem) {
     try {
       const currentIds = codes.map((c) => c.id);
-      const reportedIds = Array.from(getReportedIds());
-      const copiedList = getCopiedCodes().map((c) => c.id);
-      const exclude = Array.from(new Set([...currentIds, ...reportedIds, ...copiedList, oldCode.id]));
+      const exclude = Array.from(new Set([...currentIds, ...getAllExcludedIds(), oldCode.id]));
 
       const query = new URLSearchParams({
         limit: "1",
@@ -92,15 +103,21 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
         const data = await res.json();
         if (data.codes && data.codes.length > 0) {
           const freshCode = data.codes[0];
-          setCodes((prev) => {
-            const next = [...prev];
-            next[index] = freshCode;
-            return next;
-          });
+          if (!isCodeExcluded(freshCode.id, freshCode.code)) {
+            setCodes((prev) => {
+              const next = [...prev];
+              next[index] = freshCode;
+              return next;
+            });
+            return;
+          }
         }
       }
+      // If no fresh code available, simply remove the copied row
+      setCodes((prev) => prev.filter((c) => c.id !== oldCode.id));
     } catch (err) {
       console.error("Failed to swap row with fresh code:", err);
+      setCodes((prev) => prev.filter((c) => c.id !== oldCode.id));
     }
   }
 
@@ -110,6 +127,8 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
       setCopiedId(item.id);
       setTimeout(() => setCopiedId(null), 1500);
       showToast(t.common.copiedToast, "success");
+
+      // Lifetime save
       saveCopiedCode(item.id, item.code);
 
       // Increment use count on backend
@@ -123,7 +142,7 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
         onCodeCopiedGlobal(item);
       }
 
-      // Swap code in-place
+      // Immediately replace this row with a brand new code the user has never seen
       swapRow(index, item);
     }
   };
@@ -132,6 +151,7 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
     const deepLink = getNusukDeepLink(item.code);
     if (!deepLink) return;
 
+    // Lifetime save
     saveCopiedCode(item.id, item.code);
 
     fetch(`/api/codes/${item.id}/copy`, {
@@ -145,7 +165,7 @@ export function MoreCodesList({ locale, onCodeCopiedGlobal }: MoreCodesListProps
     }
 
     swapRow(index, item);
-    window.location.href = deepLink;
+    window.open(deepLink, "_blank");
   };
 
   const handleShowMoreBatch = () => {

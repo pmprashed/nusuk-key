@@ -5,6 +5,7 @@ import { X, Send, CheckCircle2, AlertCircle, Plus } from "lucide-react";
 import { Locale, getDictionary } from "@/lib/i18n";
 import { CodeItem } from "@/lib/types";
 import { saveMySubmission } from "@/lib/storage";
+import { INITIAL_CODES_DATA } from "@/lib/initial-codes";
 import { WhatsAppIcon } from "./UserCodeBanner";
 
 interface ShareModalProps {
@@ -28,9 +29,15 @@ export function ShareModal({ locale, isOpen, onClose, onCodeAdded }: ShareModalP
     e.preventDefault();
     setError(null);
 
-    const match = text.match(/NG-[A-Za-z0-9]{8}/);
+    const match = text.match(/NG-[A-Za-z0-9]{8}/i);
     if (!match) {
       setError(t.shareModal.errorNoCode);
+      return;
+    }
+
+    const extractedCode = match[0].toUpperCase();
+    if (INITIAL_CODES_DATA.some((c) => c.toUpperCase() === extractedCode)) {
+      setError(t.shareModal.errorDuplicate);
       return;
     }
 

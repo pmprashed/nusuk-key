@@ -15,6 +15,7 @@ import { ShareModal } from "./ShareModal";
 import { ToastContainer } from "./Toast";
 import { Footer } from "./Footer";
 import { CodeItem } from "@/lib/types";
+import { AutoStructuredData } from "./JsonLd";
 
 interface HomePageViewProps {
   locale: Locale;
@@ -90,6 +91,7 @@ export function HomePageView({ locale }: HomePageViewProps) {
       />
 
       <ToastContainer />
+      <AutoStructuredData locale={locale} />
     </div>
   );
 }
