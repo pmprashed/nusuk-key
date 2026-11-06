@@ -32,9 +32,9 @@
     "stats": {
       "totalKey": "إجمالي المفاتيح",
       "totalUsed": "إجمالي المستخدم",
-      "myKey": "مفتاحي",
+      "siteVisits24h": "زيارات الموقع آخر 24 ساعة",
+      "freshKey": "مفتاح جديد",
       "iUsed": "استخدمت",
-      "remaining": "المتبقي",
       "myIpAddress": "عنوان IP الخاص بي",
       "codesReady": "المتبقي الجديد",
       "codeUses": "المستخدم",

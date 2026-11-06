@@ -144,78 +144,81 @@ export function Hero({ locale, initialStats }: HeroProps) {
           {" "}{t.hero.timeZone}
         </p>
 
-        {/* 6 Real-Time Stats Cards Grid: Total Key | Total Used | My Key | I Used | Remaining | My IP Address */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 max-w-4xl bg-white/95 text-gray-900 p-3 rounded-2xl shadow-md border border-emerald-100/40 backdrop-blur-md">
-          {/* 1. Total Key */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
-              {(stats.codes_ready || 5644).toLocaleString()}
+        {/* 2-Row Stats Layout:
+            Row 1: Total Key | Total Used | Site visits last 24h
+            Row 2: Fresh Key | I Used | My IP Address */}
+        <div className="mt-8 max-w-3xl space-y-3">
+          {/* Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/95 text-gray-900 p-2.5 rounded-2xl shadow-md border border-emerald-100/40 backdrop-blur-md">
+            {/* 1. Total Key */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+                {(stats.codes_ready || 5644).toLocaleString()}
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).totalKey || "Total Key"}
+              </div>
             </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).totalKey || "Total Key"}
+
+            {/* 2. Total Used */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+                {stats.codes_used.toLocaleString()}
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).totalUsed || "Total Used"}
+              </div>
+            </div>
+
+            {/* 3. Site visits last 24h */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+                  {((stats.visits_last_24h || 1420)).toLocaleString()}
+                </span>
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).siteVisits24h || "Site visits last 24h"}
+              </div>
             </div>
           </div>
 
-          {/* 2. Total Used */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
-              {stats.codes_used.toLocaleString()}
+          {/* Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/95 text-gray-900 p-2.5 rounded-2xl shadow-md border border-emerald-100/40 backdrop-blur-md">
+            {/* 4. Fresh Key */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-700 font-mono tabular-nums">
+                {Math.max(0, (stats.codes_ready || 5644) - iUsedCount).toLocaleString()}
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).freshKey || "Fresh Key"}
+              </div>
             </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).totalUsed || "Total Used"}
+
+            {/* 5. I Used */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+                {iUsedCount.toLocaleString()}
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).iUsed || "I Used"}
+              </div>
+            </div>
+
+            {/* 6. My IP Address */}
+            <div className="px-4 py-3 rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="text-base sm:text-lg font-bold tracking-tight text-emerald-950 font-mono break-all leading-tight">
+                  {stats.client_ip || "127.0.0.1"}
+                </span>
+              </div>
+              <div className="text-xs text-emerald-800 font-bold tracking-wider uppercase mt-1">
+                {(t.hero.stats as any).myIpAddress || "My IP Address"}
+              </div>
             </div>
           </div>
-
-          {/* 3. My Key */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="text-sm sm:text-base font-extrabold tracking-tight text-emerald-900 font-mono truncate max-w-[120px]" title={myKeyCode || "None"}>
-              {myKeyCode || "—"}
-            </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).myKey || "My Key"}
-            </div>
-          </div>
-
-          {/* 4. I Used */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
-              {iUsedCount.toLocaleString()}
-            </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).iUsed || "I Used"}
-            </div>
-          </div>
-
-          {/* 5. Remaining */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-700 font-mono tabular-nums">
-              {Math.max(0, (stats.codes_ready || 5644) - iUsedCount).toLocaleString()}
-            </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).remaining || "Remaining"}
-            </div>
-          </div>
-
-          {/* 6. My IP Address */}
-          <div className="px-3 py-3 rounded-xl bg-gradient-to-b from-emerald-50/70 to-emerald-50/30 border border-emerald-100/60 flex flex-col justify-center items-center text-center">
-            <div className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-xs sm:text-sm font-bold tracking-tight text-emerald-950 font-mono break-all leading-tight">
-                {stats.client_ip || "127.0.0.1"}
-              </span>
-            </div>
-            <div className="text-[11px] text-emerald-800 font-bold tracking-wider uppercase mt-1">
-              {(t.hero.stats as any).myIpAddress || "My IP Address"}
-            </div>
-          </div>
-        </div>
-
-        {/* Site visits in last 24 hours banner */}
-        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 backdrop-blur-sm border border-emerald-400/20 text-xs text-emerald-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-          <span className="font-medium">
-            {t.hero.stats.peopleLastHour}: <strong className="text-white font-mono">{((stats.visits_last_24h || 1420)).toLocaleString()}</strong>
-          </span>
         </div>
       </div>
     </section>

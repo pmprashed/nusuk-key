@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Send, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Send, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { Locale, getDictionary } from "@/lib/i18n";
+import { SUPPORTED_LOCALES } from "@/lib/languages";
 
 export function KeyIcon({ className = "w-6 h-6 text-emerald-600" }: { className?: string }) {
   return (
@@ -25,19 +26,19 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
   const t = getDictionary(locale);
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Compute equivalent URL for language switcher
-  const getOppositeLocaleUrl = () => {
-    if (locale === "ar") {
-      // Current is Arabic, switch to English by stripping /ar
-      const enPath = pathname.replace(/^\/ar(\/|$)/, "/");
-      return enPath || "/";
-    } else {
-      // Current is English, switch to Arabic
-      if (pathname === "/") return "/ar";
-      return `/ar${pathname}`;
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setLangDropdownOpen(false);
+      }
     }
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const homeHref = locale === "ar" ? "/ar" : "/";
   const codesHref = locale === "ar" ? "/ar/codes" : "/codes";
@@ -49,8 +50,11 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
   const isGuideActive = pathname.includes("/guide");
   const isBlogActive = pathname.includes("/blog");
 
+  // Get current active language info
+  const currentLang = SUPPORTED_LOCALES.find((l) => l.code === locale) || SUPPORTED_LOCALES[0];
+
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all shadow-xs">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Brand */}
         <Link
@@ -64,7 +68,7 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
           <Link
             href={homeHref}
             className={`transition-colors hover:text-emerald-800 ${
@@ -97,19 +101,51 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
           >
             {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
-          <Link
-            href={getOppositeLocaleUrl()}
-            className="text-gray-600 hover:text-emerald-800 transition-colors font-medium text-sm"
-          >
-            {t.nav.langSwitch}
-          </Link>
+
+          {/* International 20+ Language Selector Dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 text-gray-700 text-xs font-semibold transition-all focus:outline-none"
+            >
+              <Globe className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{currentLang.flag} {currentLang.nativeName}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${langDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {langDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-56 max-h-80 overflow-y-auto rounded-2xl bg-white p-2 shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
+                  Select Language
+                </div>
+                {SUPPORTED_LOCALES.map((l) => (
+                  <Link
+                    key={l.code}
+                    href={l.code === "ar" ? "/ar" : "/"}
+                    onClick={() => setLangDropdownOpen(false)}
+                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                      locale === l.code
+                        ? "bg-emerald-50 text-emerald-900 font-bold"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-emerald-700"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-base">{l.flag}</span>
+                      <span>{l.nativeName}</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400 uppercase">{l.name}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Action Button */}
         <div className="hidden sm:flex items-center gap-3">
           <button
             onClick={onOpenShareModal}
-            className="inline-flex items-center gap-2 bg-[#15803D] hover:bg-[#166534] active:bg-[#14532D] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 active:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
           >
             <Send className="w-4 h-4 -rotate-45 mb-0.5" />
             <span>{t.nav.shareCode}</span>
@@ -120,7 +156,7 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
         <div className="flex sm:hidden items-center gap-2">
           <button
             onClick={onOpenShareModal}
-            className="inline-flex items-center gap-1.5 bg-[#15803D] hover:bg-[#166534] text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           >
             <Send className="w-3.5 h-3.5 -rotate-45" />
             <span>{t.nav.shareCode}</span>
@@ -166,13 +202,28 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
           >
             {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
-          <Link
-            href={getOppositeLocaleUrl()}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-medium text-emerald-700"
-          >
-            {t.nav.langSwitch}
-          </Link>
+
+          {/* Mobile Language Selector */}
+          <div className="pt-3 border-t border-gray-100">
+            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Select Language (20+ Languages)
+            </div>
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+              {SUPPORTED_LOCALES.map((l) => (
+                <Link
+                  key={l.code}
+                  href={l.code === "ar" ? "/ar" : "/"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium ${
+                    locale === l.code ? "bg-emerald-50 text-emerald-800 font-bold" : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <span>{l.flag}</span>
+                  <span className="truncate">{l.nativeName}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </header>

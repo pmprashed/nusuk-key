@@ -32,9 +32,9 @@
     "stats": {
       "totalKey": "Total Key",
       "totalUsed": "Total Used",
-      "myKey": "My Key",
+      "siteVisits24h": "Site visits last 24h",
+      "freshKey": "Fresh Key",
       "iUsed": "I Used",
-      "remaining": "Remaining",
       "myIpAddress": "My IP Address",
       "codesReady": "Fresh Left",
       "codeUses": "Used",

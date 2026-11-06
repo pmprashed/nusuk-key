@@ -1,0 +1,120 @@
+{
+  "common": {
+    "brand": "NusukKey",
+    "tagline": "Free Nusuk Referral Codes",
+    "home": "Bosh sahifa",
+    "codes": "Kodlar",
+    "guide": "Qo'llanma",
+    "shareCode": "Kod ulashish",
+    "openInNusuk": "Nusukda ochish",
+    "open": "Open",
+    "copy": "Nusxalash",
+    "copied": "Copied!",
+    "copiedToast": "Referral code copied to clipboard",
+    "loading": "Loading...",
+    "showMoreCodes": "Show 20 new codes",
+    "allRightsReserved": "Community project. No affiliation with Nusuk or Ministry of Hajj and Umrah.",
+    "disclaimer": "NusukKey is an independent community website. It is not run by Nusuk or the Ministry of Hajj and Umrah. The competition itself happens only in the official Nusuk app. NusukKey never asks for your password, OTP, or Nusuk login credentials."
+  },
+  "nav": {
+    "home": "Bosh sahifa",
+    "codes": "Kodlar",
+    "guide": "Qo'llanma",
+    "langSwitch": "Oʻzbekcha",
+    "shareCode": "Kod ulashish"
+  },
+  "hero": {
+    "title": "Bepul Nusuk Referal Kodlari",
+    "subtitle": "Nusuk ilovasida Umra tanlovi uchun bepul qo'shimcha kalit olish uchun kodni nusxalang.",
+    "updatedPrefix": "Updated",
+    "timeZone": "at 0:17 (Saudi Arabian Time)",
+    "visitsToday": "13,001 visits today",
+    "stats": {
+      "totalKey": "Jami kalitlar",
+      "totalUsed": "Jami ishlatilgan",
+      "siteVisits24h": "24 soatlik tashriflar",
+      "freshKey": "Yangi kalit",
+      "iUsed": "Men ishlatgan",
+      "myIpAddress": "Mening IP manzilim",
+      "codesReady": "Fresh Left",
+      "codeUses": "Used",
+      "peopleLastHour": "Site visits last 24h"
+    }
+  },
+  "nextCode": {
+    "badge": "Next code for you",
+    "sharedAgo": "Shared {{time}} ago",
+    "usedCount": "Used {{count}} times",
+    "openBtn": "Nusukda ochish",
+    "copyBtn": "Nusxalash"
+  },
+  "howToUse": {
+    "title": "How to use Open in Nusuk",
+    "step1": "Open the Nusuk app on your phone and stay on the Home page.",
+    "step2": "Come back here and tap Open in Nusuk. It opens the Nusuk service page with the code already filled in.",
+    "step3": "In Nusuk, go to the Keys tab and paste the code into the 'Add code' box, then tap Check the code.",
+    "step4": "When the Congratulations screen appears, stay on it — do not tap back or close the app.",
+    "step5": "Return here and tap Open in Nusuk on the next code. Repeat for every extra key you want.",
+    "footnote": "Tip: Copy the code first as a backup if the deep link opens the wrong screen."
+  },
+  "moreCodes": {
+    "title": "More codes",
+    "subtitle": "Copied codes are swapped for fresh ones in the same spot.",
+    "empty": "No active codes right now. Be the first to share one!",
+    "showMore": "Show 20 new codes"
+  },
+  "codesYouCopy": {
+    "title": "Codes you copy show up here",
+    "subtitle": "Codes you copy show up here, so you don't enter them again. Tap Problem? if one didn't work.",
+    "empty": "No codes copied yet on this device. Click Copy on any code above to start!",
+    "problemBtn": "Problem?",
+    "reasonAlreadyUsed": "Nusuk says already used",
+    "reasonNotCorrect": "Nusuk says not correct",
+    "reportedToast": "Problem reported. Code hidden from your list.",
+    "clearHistory": "Clear list"
+  },
+  "shareModal": {
+    "title": "Share your Nusuk referral code",
+    "description": "Paste your full invite message from the Nusuk app. We will automatically find and verify your NG- code.",
+    "textLabel": "Invite message or code",
+    "textPlaceholder": "e.g. Join the Nusuk Umrah challenge! Use my code NG-8K9P2MA2 to get an extra key...",
+    "nameLabel": "Your display name (optional)",
+    "namePlaceholder": "e.g. Ahmad or Traveler",
+    "submitBtn": "List my code",
+    "submitting": "Checking code...",
+    "errorNoCode": "Could not find a valid NG- code (NG- followed by 8 characters).",
+    "errorDuplicate": "This code is already listed in the rotation.",
+    "errorLimit": "You have reached the daily submission limit (10 codes per day).",
+    "errorGeneric": "Something went wrong. Please check your code and try again.",
+    "successTitle": "Your code is listed!",
+    "successCode": "{{code}} is listed",
+    "shareItToday": "Share it today: {{time}}",
+    "peopleHelped": "People you helped: {{count}}",
+    "whatsappBtn": "Share on WhatsApp",
+    "addAnotherBtn": "Add another",
+    "doneBtn": "Done"
+  },
+  "pwa": {
+    "title": "Keep NusukKey on your phone",
+    "subtitle": "Works offline, fast loading, tap 'Open' matching instructions",
+    "installBtn": "Add to home screen"
+  },
+  "seoText": {
+    "title": "How to use these free Nusuk referral codes",
+    "p1": "Every code on this page is a real Nusuk referral invite [Share code] entered by someone else taking part in the Free Umrah Competition. Tap Open in Nusuk and the code is filled in for you, or copy it, open the Nusuk app, go to the Keys tab or the challenge, and paste it. You and the person who shared both get one extra key. Which means one more question and one more entry in the daily Umrah draw.",
+    "p2": "Fresh codes are added all day and every code gets a fair turn, so no one hacks daily. Codes that do not work regular reports and removed, so replied listeners can count on fresh codes always.",
+    "linkKeys": "How to get more Nusuk keys",
+    "linkTrouble": "Nusuk key not working?",
+    "linkFind": "Find your own Nusuk code"
+  },
+  "footer": {
+    "freeCodes": "Free Nusuk codes",
+    "competition2026": "Nusuk competition 2026",
+    "howToGetKeys": "How to get more Nusuk keys",
+    "keyNotWorking": "Nusuk key not working?",
+    "findCode": "Find your Nusuk invite code",
+    "privacy": "Privacy Policy",
+    "contact": "Contact",
+    "credits": "Photos: Fatih Turan and Earth Phortart on Pexels."
+  }
+}
