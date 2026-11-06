@@ -10,31 +10,34 @@ interface HeroProps {
   initialStats?: StatsResponse;
 }
 
-/** Format date in Saudi Arabian Time (UTC+3) */
+/** Format date in Saudi Arabian Time (Asia/Riyadh, UTC+3) accurately */
 function getSaudiTimeString(locale: Locale): { date: string; time: string } {
   try {
     const now = new Date();
-    // Saudi Arabia is UTC+3
-    const saudiDate = new Date(now.getTime() + 3 * 60 * 60 * 1000);
 
-    const dateFormatted = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", {
+    const dateFormatted = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", {
       day: "numeric",
       month: "long",
       year: "numeric",
       timeZone: "Asia/Riyadh",
     }).format(now);
 
-    const timeFormatted = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-GB", {
+    const timeFormatted = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA" : "en-US", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-      hour12: false,
+      hour12: true,
       timeZone: "Asia/Riyadh",
     }).format(now);
 
     return { date: dateFormatted, time: timeFormatted };
   } catch {
-    return { date: "5 November 2026", time: "00:00:00" };
+    const now = new Date();
+    const utcHours = now.getUTCHours() + 3;
+    const saudiHours = (utcHours % 24).toString().padStart(2, "0");
+    const saudiMinutes = now.getUTCMinutes().toString().padStart(2, "0");
+    const saudiSeconds = now.getUTCSeconds().toString().padStart(2, "0");
+    return { date: "6 November 2026", time: `${saudiHours}:${saudiMinutes}:${saudiSeconds}` };
   }
 }
 
@@ -48,7 +51,7 @@ export function Hero({ locale, initialStats }: HeroProps) {
   const [myKeyCode, setMyKeyCode] = useState<string | null>(null);
   const fetchingRef = useRef(false);
 
-  // Read local user activity (I Used, My Key)
+  // Read local user activity (I Used, My Key) and update counts immediately
   useEffect(() => {
     const updateLocalStats = () => {
       try {
@@ -58,10 +61,24 @@ export function Hero({ locale, initialStats }: HeroProps) {
         if (subs.length > 0) {
           setMyKeyCode(subs[0].code);
         }
+        // Immediately bump total used in UI for instant responsiveness!
+        setStats((prev) => ({
+          ...prev,
+          codes_used: prev.codes_used + 1,
+        }));
       } catch {}
     };
 
-    updateLocalStats();
+    // Initial check without incrementing
+    try {
+      const copied = getCopiedCodes();
+      setIUsedCount(copied.length);
+      const subs = getMySubmissions();
+      if (subs.length > 0) {
+        setMyKeyCode(subs[0].code);
+      }
+    } catch {}
+
     window.addEventListener("nusuk:code_copied", updateLocalStats);
     window.addEventListener("nusuk:code_reported", updateLocalStats);
     return () => {
@@ -135,13 +152,15 @@ export function Hero({ locale, initialStats }: HeroProps) {
         </p>
 
         {/* Live Saudi Arabian Time — updates every second */}
-        <p className="text-xs text-emerald-200/80 tracking-wide font-mono flex items-center gap-1.5">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          {t.hero.updatedPrefix}{" "}
-          <span className="font-semibold">{saudiTime.date}</span>
-          {" at "}
-          <span className="font-semibold tabular-nums">{saudiTime.time}</span>
-          {" "}{t.hero.timeZone}
+        <p className="text-xs text-emerald-200/90 tracking-wide font-mono flex items-center gap-1.5 flex-wrap">
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span>{t.hero.updatedPrefix}</span>
+          <span className="font-semibold text-white">{saudiTime.date}</span>
+          <span>{locale === "ar" ? "الساعة" : "at"}</span>
+          <span className="font-bold text-white tabular-nums bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-400/30">
+            {saudiTime.time}
+          </span>
+          <span className="text-emerald-300 font-medium">{t.hero.timeZone}</span>
         </p>
 
         {/* 2-Row Stats Layout:
