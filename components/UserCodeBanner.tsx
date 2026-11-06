@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, Plus } from "lucide-react";
-import { Locale, getDictionary } from "@/lib/i18n";
+import { Locale } from "@/lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 import { getMySubmissions, MySubmission } from "@/lib/storage";
 
 export function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -14,13 +15,15 @@ export function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) 
 }
 
 interface UserCodeBannerProps {
-  locale: Locale;
+  locale?: Locale;
   onAddAnother: () => void;
   latestSubmittedCode?: string;
 }
 
-export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: UserCodeBannerProps) {
-  const t = getDictionary(locale);
+export function UserCodeBanner({ locale: propLocale, onAddAnother, latestSubmittedCode }: UserCodeBannerProps) {
+  const { locale: contextLocale, t } = useLanguage();
+  const locale = propLocale || contextLocale;
+
   const [submission, setSubmission] = useState<MySubmission | null>(null);
   const [elapsedMinutes, setElapsedMinutes] = useState(0);
 
@@ -49,69 +52,48 @@ export function UserCodeBanner({ locale, onAddAnother, latestSubmittedCode }: Us
 
   if (!submission) return null;
 
-  const handleWhatsAppShare = () => {
-    const text =
-      locale === "ar"
-        ? `شارك في مسابقة العمرة في تطبيق نسك واستخدم رمزي للحصول على مفتاح إضافي: ${submission.code}`
-        : `Join the Nusuk Umrah competition and use my invite code for an extra key: ${submission.code}`;
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const timeLabel =
-    elapsedMinutes < 1
-      ? locale === "ar" ? "شاركها اليوم: الآن" : "Share it today: just now"
-      : locale === "ar"
-        ? `شاركها اليوم: منذ ${elapsedMinutes} دقيقة`
-        : `Share it today: ${elapsedMinutes}m ago`;
+  const shareText = t.userCodeBanner.whatsappShareText.replace("{{code}}", submission.code);
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
 
   return (
-    <div className="mb-6 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 p-4 sm:p-5 shadow-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
+    <div className="rounded-3xl bg-emerald-50/90 border border-emerald-200/90 p-4 sm:p-5 mb-6 text-emerald-950 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
           <div>
-            <div className="text-base font-bold text-gray-900 font-mono flex items-center gap-2">
-              <span>{submission.code}</span>
-              <span className="text-xs font-sans font-medium text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                {locale === "ar" ? "مدرج الآن" : "is listed"}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-sm text-emerald-950">
+                {t.userCodeBanner.title}
+              </span>
+              <span className="font-mono font-black text-sm bg-white border border-emerald-300 px-2 py-0.5 rounded-md text-emerald-900 select-all shadow-xs">
+                {submission.code}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5 font-medium">
-              {timeLabel}
+            <p className="text-xs text-emerald-800/80 mt-1 font-medium">
+              {t.userCodeBanner.inRotation} · {elapsedMinutes}m ago
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleWhatsAppShare}
-            className="inline-flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba59] text-white px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition-colors"
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba5a] text-white text-xs font-bold transition-all shadow-xs"
           >
-            <WhatsAppIcon className="w-4 h-4" />
-            <span>{t.shareModal.whatsappBtn}</span>
-          </button>
+            <WhatsAppIcon className="w-3.5 h-3.5" />
+            <span>{t.userCodeBanner.shareWhatsapp}</span>
+          </a>
+
           <button
             onClick={onAddAnother}
-            className="inline-flex items-center gap-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-900 border border-emerald-300 text-xs font-bold transition-all shadow-xs"
           >
-            <Plus className="w-4 h-4" />
-            <span>{t.shareModal.addAnotherBtn}</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>{t.userCodeBanner.addAnother}</span>
           </button>
         </div>
-      </div>
-
-      <div className="mt-4 pt-3 border-t border-emerald-200/50 flex items-center gap-2 text-xs text-gray-600">
-        <div className="flex -space-x-1.5 rtl:space-x-reverse overflow-hidden">
-          <div className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-emerald-300 text-center text-[10px] leading-5 font-bold text-emerald-800">1</div>
-          <div className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-emerald-200 text-center text-[10px] leading-5 font-bold text-emerald-800">2</div>
-          <div className="inline-block h-5 w-5 rounded-full ring-2 ring-white bg-emerald-100 text-center text-[10px] leading-5 font-bold text-emerald-800">3</div>
-        </div>
-        <span className="font-medium text-emerald-900">
-          {t.shareModal.peopleHelped.replace("{{count}}", "0")}
-        </span>
       </div>
     </div>
   );

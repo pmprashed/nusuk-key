@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Send, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Send, Menu, X, Globe, ChevronDown, Check } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { Locale, getDictionary } from "@/lib/i18n";
+import { Locale } from "@/lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 import { SUPPORTED_LOCALES } from "@/lib/languages";
 
 export function KeyIcon({ className = "w-6 h-6 text-emerald-600" }: { className?: string }) {
@@ -18,12 +19,13 @@ export function KeyIcon({ className = "w-6 h-6 text-emerald-600" }: { className?
 }
 
 interface HeaderProps {
-  locale: Locale;
+  locale?: Locale;
   onOpenShareModal?: () => void;
 }
 
-export function Header({ locale, onOpenShareModal }: HeaderProps) {
-  const t = getDictionary(locale);
+export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
+  const { locale: contextLocale, setLocale, t } = useLanguage();
+  const locale = propLocale || contextLocale;
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
@@ -45,13 +47,19 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
   const guideHref = locale === "ar" ? "/ar/guide" : "/guide";
   const blogHref = locale === "ar" ? "/ar/blog" : "/blog";
 
-  const isHomeActive = pathname === homeHref || (locale === "en" && pathname === "");
-  const isCodesActive = pathname === codesHref;
+  const isHomeActive = pathname === "/" || pathname === "/ar" || pathname === "";
+  const isCodesActive = pathname.includes("/codes");
   const isGuideActive = pathname.includes("/guide");
   const isBlogActive = pathname.includes("/blog");
 
   // Get current active language info
   const currentLang = SUPPORTED_LOCALES.find((l) => l.code === locale) || SUPPORTED_LOCALES[0];
+
+  const handleSelectLanguage = (newCode: Locale) => {
+    setLocale(newCode);
+    setLangDropdownOpen(false);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all shadow-xs">
@@ -59,169 +67,210 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
         {/* Brand */}
         <Link
           href={homeHref}
-          className="flex items-center gap-2 font-bold text-xl tracking-tight text-gray-900 hover:opacity-90 transition-opacity"
+          className="flex items-center gap-2.5 font-bold text-xl tracking-tight text-gray-900 hover:opacity-90 transition-opacity"
         >
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center border border-emerald-100">
-            <KeyIcon className="w-5 h-5 text-emerald-700" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-xs">
+            <KeyIcon className="w-5 h-5 text-white" />
           </div>
-          <span>{t.common.brand}</span>
+          <span className="font-extrabold text-gray-900 tracking-tight">{t.common.brand}</span>
         </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-600">
+        {/* Desktop Navigation Tabs (Modern Pill-Shape) */}
+        <nav className="hidden md:flex items-center gap-2 text-sm font-medium bg-gray-50/80 p-1.5 rounded-full border border-gray-200/60 shadow-inner">
           <Link
             href={homeHref}
-            className={`transition-colors hover:text-emerald-800 ${
-              isHomeActive ? "text-emerald-800 font-semibold border-b-2 border-emerald-800 pb-1" : ""
+            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              isHomeActive
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/60"
             }`}
           >
             {t.nav.home}
           </Link>
           <Link
             href={codesHref}
-            className={`transition-colors hover:text-emerald-800 ${
-              isCodesActive ? "text-emerald-800 font-semibold border-b-2 border-emerald-800 pb-1" : ""
+            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              isCodesActive
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/60"
             }`}
           >
             {t.nav.codes}
           </Link>
           <Link
             href={guideHref}
-            className={`transition-colors hover:text-emerald-800 ${
-              isGuideActive ? "text-emerald-800 font-semibold border-b-2 border-emerald-800 pb-1" : ""
+            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              isGuideActive
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/60"
             }`}
           >
             {t.nav.guide}
           </Link>
           <Link
             href={blogHref}
-            className={`transition-colors hover:text-emerald-800 ${
-              isBlogActive ? "text-emerald-800 font-semibold border-b-2 border-emerald-800 pb-1" : ""
+            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              isBlogActive
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/60"
             }`}
           >
             {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
+        </nav>
 
-          {/* International 20+ Language Selector Dropdown */}
+        {/* Right Section: Language Dropdown & Share Button */}
+        <div className="hidden sm:flex items-center gap-3">
+          {/* International 21-Language Selector Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 text-gray-700 text-xs font-semibold transition-all focus:outline-none"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/50 text-gray-800 text-xs font-bold transition-all focus:outline-none shadow-xs"
+              aria-label="Select website language"
             >
               <Globe className="w-3.5 h-3.5 text-emerald-700" />
               <span>{currentLang.flag} {currentLang.nativeName}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${langDropdownOpen ? "rotate-180" : ""}`} />
+              <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${langDropdownOpen ? "rotate-180" : ""}`} />
             </button>
 
             {langDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 max-h-80 overflow-y-auto rounded-2xl bg-white p-2 shadow-xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 mt-2 w-64 max-h-84 overflow-y-auto rounded-2xl bg-white p-2 shadow-2xl border border-gray-100 z-50 animate-in fade-in zoom-in-95 duration-100">
                 <div className="px-3 py-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 mb-1">
-                  Select Language
+                  Preferred Language (21 Languages)
                 </div>
-                {SUPPORTED_LOCALES.map((l) => (
-                  <Link
-                    key={l.code}
-                    href={l.code === "ar" ? "/ar" : "/"}
-                    onClick={() => setLangDropdownOpen(false)}
-                    className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
-                      locale === l.code
-                        ? "bg-emerald-50 text-emerald-900 font-bold"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-emerald-700"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-base">{l.flag}</span>
-                      <span>{l.nativeName}</span>
-                    </span>
-                    <span className="text-[10px] text-gray-400 uppercase">{l.name}</span>
-                  </Link>
-                ))}
+                {SUPPORTED_LOCALES.map((l) => {
+                  const isCurrent = locale === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      onClick={() => handleSelectLanguage(l.code as Locale)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors text-left ${
+                        isCurrent
+                          ? "bg-emerald-50 text-emerald-950 font-bold"
+                          : "text-gray-700 hover:bg-gray-50 hover:text-emerald-800"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-base">{l.flag}</span>
+                        <span>{l.nativeName}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-[10px] text-gray-400 uppercase">{l.name}</span>
+                        {isCurrent && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
-        </nav>
 
-        {/* Action Button */}
-        <div className="hidden sm:flex items-center gap-3">
+          {/* Share a Code Action Button */}
           <button
             onClick={onOpenShareModal}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 active:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2"
-          >
-            <Send className="w-4 h-4 -rotate-45 mb-0.5" />
-            <span>{t.nav.shareCode}</span>
-          </button>
-        </div>
-
-        {/* Mobile menu button */}
-        <div className="flex sm:hidden items-center gap-2">
-          <button
-            onClick={onOpenShareModal}
-            className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
           >
             <Send className="w-3.5 h-3.5 -rotate-45" />
             <span>{t.nav.shareCode}</span>
           </button>
+        </div>
+
+        {/* Mobile Actions */}
+        <div className="flex sm:hidden items-center gap-2">
+          {/* Mobile Quick Globe button */}
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="p-1.5 text-gray-700 border border-gray-200 rounded-lg text-xs flex items-center gap-1"
+          >
+            <span>{currentLang.flag}</span>
+          </button>
+
+          <button
+            onClick={onOpenShareModal}
+            className="inline-flex items-center gap-1 bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"
+          >
+            <Send className="w-3 h-3 -rotate-45" />
+            <span>{t.nav.shareCode}</span>
+          </button>
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+            className="p-1.5 text-gray-600 hover:text-gray-900 rounded-lg"
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="sm:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-4 space-y-2 shadow-lg">
-          <Link
-            href={homeHref}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
-          >
-            {t.nav.home}
-          </Link>
-          <Link
-            href={codesHref}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
-          >
-            {t.nav.codes}
-          </Link>
-          <Link
-            href={guideHref}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
-          >
-            {t.nav.guide}
-          </Link>
-          <Link
-            href={blogHref}
-            onClick={() => setMobileMenuOpen(false)}
-            className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
-          >
-            {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
-          </Link>
+        <div className="sm:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-5 space-y-3 shadow-xl">
+          <div className="grid grid-cols-4 gap-1 p-1 bg-gray-50 rounded-xl">
+            <Link
+              href={homeHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`text-center py-2 text-xs font-bold rounded-lg transition-colors ${
+                isHomeActive ? "bg-emerald-800 text-white" : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {t.nav.home}
+            </Link>
+            <Link
+              href={codesHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`text-center py-2 text-xs font-bold rounded-lg transition-colors ${
+                isCodesActive ? "bg-emerald-800 text-white" : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {t.nav.codes}
+            </Link>
+            <Link
+              href={guideHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`text-center py-2 text-xs font-bold rounded-lg transition-colors ${
+                isGuideActive ? "bg-emerald-800 text-white" : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {t.nav.guide}
+            </Link>
+            <Link
+              href={blogHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`text-center py-2 text-xs font-bold rounded-lg transition-colors ${
+                isBlogActive ? "bg-emerald-800 text-white" : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
+            </Link>
+          </div>
 
-          {/* Mobile Language Selector */}
-          <div className="pt-3 border-t border-gray-100">
-            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
-              Select Language (20+ Languages)
+          {/* Mobile 21-Language Grid */}
+          <div className="pt-2 border-t border-gray-100">
+            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Select Language (21 Available)
             </div>
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-              {SUPPORTED_LOCALES.map((l) => (
-                <Link
-                  key={l.code}
-                  href={l.code === "ar" ? "/ar" : "/"}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium ${
-                    locale === l.code ? "bg-emerald-50 text-emerald-800 font-bold" : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <span>{l.flag}</span>
-                  <span className="truncate">{l.nativeName}</span>
-                </Link>
-              ))}
+            <div className="grid grid-cols-2 gap-1.5 max-h-56 overflow-y-auto pr-1">
+              {SUPPORTED_LOCALES.map((l) => {
+                const isCurrent = locale === l.code;
+                return (
+                  <button
+                    key={l.code}
+                    onClick={() => handleSelectLanguage(l.code as Locale)}
+                    className={`flex items-center justify-between p-2 rounded-xl text-xs font-medium text-left transition-colors ${
+                      isCurrent
+                        ? "bg-emerald-100 text-emerald-950 font-bold border border-emerald-300"
+                        : "text-gray-700 hover:bg-gray-50 border border-gray-100"
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 truncate">
+                      <span>{l.flag}</span>
+                      <span className="truncate">{l.nativeName}</span>
+                    </span>
+                    {isCurrent && <Check className="w-3 h-3 text-emerald-700 shrink-0" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

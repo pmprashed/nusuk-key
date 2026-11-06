@@ -5,6 +5,8 @@ import { BLOG_POSTS } from "@/lib/blog-data";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
+import { LanguageProvider } from "@/components/LanguageProvider";
+
 interface Props {
   params: { slug: string };
 }
@@ -64,13 +66,14 @@ export default function ArabicBlogPostPage({ params }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFDFB]" dir="rtl">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <Header locale="ar" />
-      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-12 w-full text-right">
+    <LanguageProvider initialLocale="ar">
+      <div className="min-h-screen flex flex-col bg-[#FBFDFB]" dir="rtl">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <Header locale="ar" />
+        <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-12 w-full text-right">
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-500 mb-6 flex items-center gap-2">
           <Link href="/ar" className="hover:text-emerald-700">الرئيسية</Link>
@@ -116,6 +119,7 @@ export default function ArabicBlogPostPage({ params }: Props) {
         </article>
       </main>
       <Footer locale="ar" />
-    </div>
+      </div>
+    </LanguageProvider>
   );
 }

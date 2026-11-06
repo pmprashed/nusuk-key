@@ -5,6 +5,8 @@ import { BLOG_POSTS } from "@/lib/blog-data";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 
+import { LanguageProvider } from "@/components/LanguageProvider";
+
 interface Props {
   params: { slug: string };
 }
@@ -64,13 +66,14 @@ export default function BlogPostPage({ params }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFDFB]">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <Header locale="en" />
-      <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-12 w-full">
+    <LanguageProvider initialLocale="en">
+      <div className="min-h-screen flex flex-col bg-[#FBFDFB]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <Header locale="en" />
+        <main className="flex-1 max-w-3xl mx-auto px-4 sm:px-6 py-12 w-full">
         {/* Breadcrumb */}
         <nav className="text-xs text-gray-500 mb-6 flex items-center gap-2">
           <Link href="/" className="hover:text-emerald-700">Home</Link>
@@ -116,6 +119,7 @@ export default function BlogPostPage({ params }: Props) {
         </article>
       </main>
       <Footer locale="en" />
-    </div>
+      </div>
+    </LanguageProvider>
   );
 }

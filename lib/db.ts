@@ -91,7 +91,16 @@ export async function getCodes(params: {
         .order("created_at", { ascending: true });
 
       if (allExcluded.length > 0) {
-        query = query.not("id", "in", `(${allExcluded.join(",")})`);
+        const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+        const uuidExclusions = allExcluded.filter(isUuid);
+        const codeExclusions = allExcluded.filter((s) => /^NG-/i.test(s)).map((s) => s.toUpperCase());
+
+        if (uuidExclusions.length > 0) {
+          query = query.not("id", "in", `(${uuidExclusions.slice(0, 150).join(",")})`);
+        }
+        if (codeExclusions.length > 0) {
+          query = query.not("code", "in", `(${codeExclusions.slice(0, 150).join(",")})`);
+        }
       }
 
       const { data, error } = await query.limit(limit * 3);
@@ -115,6 +124,18 @@ export async function getCodes(params: {
 
         return selected;
       }
+
+      // If excluded filter exhausted or returned 0, query without exclusion to avoid empty states
+      const { data: fallbackData } = await supabase
+        .from("codes")
+        .select("*")
+        .eq("status", "active")
+        .order("use_count", { ascending: true })
+        .limit(limit);
+
+      if (fallbackData && fallbackData.length > 0) {
+        return fallbackData;
+      }
     } catch (e) {
       console.error("Error fetching codes from Supabase:", e);
     }
@@ -129,9 +150,13 @@ export async function getCodes(params: {
     ? new Set(memoryStore.codeEvents.filter((e) => e.device_hash === params.deviceHash).map((e) => e.code_id))
     : new Set<string>();
 
-  const eligible = memoryStore.codes.filter(
+  let eligible = memoryStore.codes.filter(
     (c) => c.status === "active" && !excludeSet.has(c.id) && !reportedIds.has(c.id) && !interactedIds.has(c.id)
   );
+
+  if (eligible.length === 0) {
+    eligible = memoryStore.codes.filter((c) => c.status === "active");
+  }
 
   eligible.sort((a, b) => {
     if (a.use_count !== b.use_count) return a.use_count - b.use_count;
@@ -144,7 +169,7 @@ export async function getCodes(params: {
     c.last_served_at = now;
   });
 
-  return selected;
+  return selected.length > 0 ? selected : INITIAL_FALLBACK_CODES.slice(0, limit);
 }
 
 export async function getNextCode(deviceHash?: string, exclude?: string[]): Promise<CodeItem | null> {
@@ -152,7 +177,7 @@ export async function getNextCode(deviceHash?: string, exclude?: string[]): Prom
   const excludeLower = (exclude || []).map((x) => x.toLowerCase());
 
   // If user has not excluded NG-CXEVbXwR yet, always serve it as the very first code!
-  if (!excludeLower.includes(FIRST_CODE.toLowerCase())) {
+  if (!excludeLower.includes(FIRST_CODE.toLowerCase()) && !excludeLower.includes("first-visit-cxevbxwr")) {
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
@@ -180,7 +205,17 @@ export async function getNextCode(deviceHash?: string, exclude?: string[]): Prom
   }
 
   const codes = await getCodes({ limit: 1, deviceHash, exclude });
-  return codes[0] || null;
+  if (codes && codes.length > 0) {
+    return codes[0];
+  }
+
+  // Absolute fallback: pick any code from INITIAL_FALLBACK_CODES
+  if (INITIAL_FALLBACK_CODES.length > 0) {
+    const randomIdx = Math.floor(Math.random() * INITIAL_FALLBACK_CODES.length);
+    return INITIAL_FALLBACK_CODES[randomIdx];
+  }
+
+  return null;
 }
 
 export async function addCode(params: {

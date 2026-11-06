@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Smartphone, PlusSquare, Check } from "lucide-react";
-import { Locale, getDictionary } from "@/lib/i18n";
+import { Locale } from "@/lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 import { showToast } from "./Toast";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -10,8 +11,10 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export function PwaCard({ locale }: { locale: Locale }) {
-  const t = getDictionary(locale);
+export function PwaCard({ locale: propLocale }: { locale?: Locale }) {
+  const { locale: contextLocale, t } = useLanguage();
+  const locale = propLocale || contextLocale;
+
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
 
@@ -42,40 +45,48 @@ export function PwaCard({ locale }: { locale: Locale }) {
       }
       setDeferredPrompt(null);
     } else {
-      // Fallback instructions for iOS or desktop
       showToast(
         locale === "ar"
           ? "أضف الموقع للشاشة الرئيسية من قائمة متصفحك (مشاركة > إضافة إلى الصفحة الرئيسية)"
+          : locale === "bn"
+          ? "আপনার ব্রাউজার মেনু থেকে 'Add to Home screen' চাপুন"
           : "Add to home screen from your browser menu (Share > Add to Home Screen)",
         "info"
       );
     }
   };
 
-  if (installed) return null;
-
   return (
-    <div className="mb-10 rounded-2xl bg-white border border-gray-200/80 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="flex items-center gap-3.5">
-        <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+    <div className="rounded-3xl bg-white border border-gray-200/90 p-5 sm:p-6 mb-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex items-start gap-3.5">
+        <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-100">
           <Smartphone className="w-5 h-5" />
         </div>
         <div>
-          <h3 className="text-sm sm:text-base font-bold text-gray-900 tracking-tight">
+          <h3 className="text-sm font-bold text-gray-900">
             {t.pwa.title}
           </h3>
           <p className="text-xs text-gray-500 mt-0.5">
-            {t.pwa.subtitle}
+            {t.pwa.desc}
           </p>
         </div>
       </div>
 
       <button
         onClick={handleInstallClick}
-        className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-colors shrink-0 shadow-2xs"
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition-all shadow-xs shrink-0 self-end sm:self-auto"
       >
-        <PlusSquare className="w-4 h-4 text-emerald-700" />
-        <span>{t.pwa.installBtn}</span>
+        {installed ? (
+          <>
+            <Check className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Installed</span>
+          </>
+        ) : (
+          <>
+            <PlusSquare className="w-3.5 h-3.5" />
+            <span>{t.pwa.installBtn}</span>
+          </>
+        )}
       </button>
     </div>
   );

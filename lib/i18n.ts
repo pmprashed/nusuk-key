@@ -68,7 +68,23 @@ const dictionaries: Record<Locale, any> = {
 };
 
 export function getDictionary(locale: Locale) {
-  return dictionaries[locale] || en;
+  const dict = dictionaries[locale] || en;
+  if (locale === "en") return en;
+  return {
+    ...en,
+    ...dict,
+    common: { ...en.common, ...(dict.common || {}) },
+    nav: { ...en.nav, ...(dict.nav || {}) },
+    hero: { ...en.hero, ...(dict.hero || {}), stats: { ...en.hero.stats, ...(dict.hero?.stats || {}) } },
+    nextCode: { ...en.nextCode, ...(dict.nextCode || {}) },
+    howToUse: { ...en.howToUse, ...(dict.howToUse || {}) },
+    moreCodes: { ...en.moreCodes, ...(dict.moreCodes || {}) },
+    codesYouCopy: { ...en.codesYouCopy, ...(dict.codesYouCopy || {}) },
+    shareModal: { ...en.shareModal, ...(dict.shareModal || {}) },
+    pwa: { ...en.pwa, ...(dict.pwa || {}) },
+    seoText: { ...en.seoText, ...(dict.seoText || {}) },
+    footer: { ...en.footer, ...(dict.footer || {}) },
+  };
 }
 
 export function isRtl(locale: Locale): boolean {

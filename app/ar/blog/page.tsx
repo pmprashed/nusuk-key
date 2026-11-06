@@ -17,11 +17,14 @@ export const metadata: Metadata = {
   },
 };
 
+import { LanguageProvider } from "@/components/LanguageProvider";
+
 export default function ArabicBlogIndexPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#FBFDFB]" dir="rtl">
-      <Header locale="ar" />
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-12 w-full">
+    <LanguageProvider initialLocale="ar">
+      <div className="min-h-screen flex flex-col bg-[#FBFDFB]" dir="rtl">
+        <Header locale="ar" />
+        <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-12 w-full">
         {/* Title & Introduction */}
         <div className="mb-10 text-center sm:text-right">
           <div className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-3">
@@ -70,6 +73,7 @@ export default function ArabicBlogIndexPage() {
         </div>
       </main>
       <Footer locale="ar" />
-    </div>
+      </div>
+    </LanguageProvider>
   );
 }

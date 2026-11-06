@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Locale } from "@/lib/i18n";
+import { LanguageProvider, useLanguage } from "./LanguageProvider";
 import { Header } from "./Header";
 import { Hero } from "./Hero";
 import { UserCodeBanner } from "./UserCodeBanner";
@@ -21,7 +22,8 @@ interface HomePageViewProps {
   locale: Locale;
 }
 
-export function HomePageView({ locale }: HomePageViewProps) {
+function HomePageContent() {
+  const { locale } = useLanguage();
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [latestSubmittedCode, setLatestSubmittedCode] = useState<string | undefined>(undefined);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -93,5 +95,13 @@ export function HomePageView({ locale }: HomePageViewProps) {
       <ToastContainer />
       <AutoStructuredData locale={locale} />
     </div>
+  );
+}
+
+export function HomePageView({ locale }: HomePageViewProps) {
+  return (
+    <LanguageProvider initialLocale={locale}>
+      <HomePageContent />
+    </LanguageProvider>
   );
 }

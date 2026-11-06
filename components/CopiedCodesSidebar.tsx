@@ -1,19 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertCircle, Trash2, CheckCircle2 } from "lucide-react";
-import { Locale, getDictionary } from "@/lib/i18n";
+import { AlertCircle, Trash2, CheckCircle2, History } from "lucide-react";
+import { Locale } from "@/lib/i18n";
+import { useLanguage } from "./LanguageProvider";
 import { CopiedCodeLocal, ReportType } from "@/lib/types";
 import { getCopiedCodes, markCodeReported, clearCopiedCodes } from "@/lib/storage";
 import { showToast } from "./Toast";
 
 interface CopiedCodesSidebarProps {
-  locale: Locale;
+  locale?: Locale;
   refreshTrigger?: number;
 }
 
-export function CopiedCodesSidebar({ locale, refreshTrigger }: CopiedCodesSidebarProps) {
-  const t = getDictionary(locale);
+export function CopiedCodesSidebar({ locale: propLocale, refreshTrigger }: CopiedCodesSidebarProps) {
+  const { locale: contextLocale, t } = useLanguage();
+  const locale = propLocale || contextLocale;
+
   const [copiedCodes, setCopiedCodes] = useState<CopiedCodeLocal[]>([]);
   const [activeReportId, setActiveReportId] = useState<string | null>(null);
 
@@ -21,11 +24,19 @@ export function CopiedCodesSidebar({ locale, refreshTrigger }: CopiedCodesSideba
     setCopiedCodes(getCopiedCodes());
   }, [refreshTrigger]);
 
+  useEffect(() => {
+    const handleGlobalCopy = () => {
+      setCopiedCodes(getCopiedCodes());
+    };
+    window.addEventListener("nusuk:code_copied", handleGlobalCopy);
+    return () => window.removeEventListener("nusuk:code_copied", handleGlobalCopy);
+  }, []);
+
   const handleReport = async (item: CopiedCodeLocal, type: ReportType) => {
     setActiveReportId(null);
     markCodeReported(item.id);
     setCopiedCodes(getCopiedCodes());
-    showToast(t.codesYouCopy.reportedToast, "info");
+    showToast(t.codesYouCopy.reportedToast || "Report received. Code removed from your list.", "info");
 
     try {
       await fetch(`/api/codes/${item.id}/report`, {
@@ -44,15 +55,16 @@ export function CopiedCodesSidebar({ locale, refreshTrigger }: CopiedCodesSideba
   };
 
   return (
-    <div className="bg-white border border-gray-200/80 rounded-2xl p-5 shadow-xs mb-8">
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <h3 className="text-base font-bold text-gray-900 tracking-tight">
-          {t.codesYouCopy.title}
+    <div className="bg-white border border-gray-200/90 rounded-3xl p-5 sm:p-6 shadow-sm mb-8">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <h3 className="text-base font-black text-gray-900 tracking-tight flex items-center gap-2">
+          <History className="w-4 h-4 text-emerald-700" />
+          <span>{t.codesYouCopy.title}</span>
         </h3>
         {copiedCodes.length > 0 && (
           <button
             onClick={handleClear}
-            className="text-gray-400 hover:text-red-600 transition-colors p-1"
+            className="text-gray-400 hover:text-red-600 transition-colors p-1.5 rounded-lg hover:bg-red-50"
             title={t.codesYouCopy.clearHistory}
             aria-label={t.codesYouCopy.clearHistory}
           >
@@ -61,61 +73,67 @@ export function CopiedCodesSidebar({ locale, refreshTrigger }: CopiedCodesSideba
         )}
       </div>
 
-      <p className="text-xs text-gray-500 leading-relaxed mb-4">
+      <p className="text-xs text-gray-500 mb-4 font-medium">
         {t.codesYouCopy.subtitle}
       </p>
 
       {copiedCodes.length === 0 ? (
-        <div className="rounded-xl bg-gray-50/70 border border-dashed border-gray-200 p-6 text-center text-xs text-gray-400">
-          {t.codesYouCopy.empty}
+        <div className="py-8 text-center text-xs text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+          {locale === "ar"
+            ? "لم تقم بنسخ أي رمز بعد"
+            : locale === "bn"
+            ? "আপনি এখনও কোনো কোড কপি করেননি"
+            : locale === "ur"
+            ? "آپ نے ابھی تک کوئی کوڈ کاپی نہیں کیا"
+            : "No codes copied yet"}
         </div>
       ) : (
-        <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-          {copiedCodes.map((item) => {
-            const isMenuOpen = activeReportId === item.id;
+        <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+          {copiedCodes.map((item) => (
+            <div
+              key={item.id}
+              className="flex items-center justify-between gap-2 p-3 bg-emerald-50/40 border border-emerald-100 rounded-2xl transition-all"
+            >
+              <div className="min-w-0 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-mono font-bold text-sm text-gray-900 tracking-wider truncate">
+                  {item.code}
+                </span>
+              </div>
 
-            return (
-              <div
-                key={item.id}
-                className="relative rounded-xl border border-gray-100 bg-gray-50/60 p-2.5 transition-all text-xs"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-mono font-bold text-gray-900 select-all">
-                      {item.code}
-                    </span>
-                  </div>
-
+              {activeReportId === item.id ? (
+                <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => setActiveReportId(isMenuOpen ? null : item.id)}
-                    className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded-md border border-amber-200/70 transition-colors"
+                    onClick={() => handleReport(item, "not_correct")}
+                    className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[10px] font-bold"
                   >
-                    <AlertCircle className="w-3 h-3" />
-                    <span>{t.codesYouCopy.problemBtn}</span>
+                    {t.codesYouCopy.reportInvalid}
+                  </button>
+                  <button
+                    onClick={() => handleReport(item, "already_used")}
+                    className="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-[10px] font-bold"
+                  >
+                    {t.codesYouCopy.reportUsed}
+                  </button>
+                  <button
+                    onClick={() => setActiveReportId(null)}
+                    className="px-1.5 py-1 text-gray-400 hover:text-gray-600 text-[10px]"
+                  >
+                    ✕
                   </button>
                 </div>
-
-                {/* Problem Selection Dropdown */}
-                {isMenuOpen && (
-                  <div className="mt-2 pt-2 border-t border-gray-200/60 space-y-1.5 animate-in fade-in duration-150">
-                    <button
-                      onClick={() => handleReport(item, "already_used")}
-                      className="w-full text-left rtl:text-right px-2.5 py-1.5 rounded-lg text-xs bg-white hover:bg-red-50 text-red-800 border border-red-100 transition-colors font-medium"
-                    >
-                      • {t.codesYouCopy.reasonAlreadyUsed}
-                    </button>
-                    <button
-                      onClick={() => handleReport(item, "not_correct")}
-                      className="w-full text-left rtl:text-right px-2.5 py-1.5 rounded-lg text-xs bg-white hover:bg-red-50 text-red-800 border border-red-100 transition-colors font-medium"
-                    >
-                      • {t.codesYouCopy.reasonNotCorrect}
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              ) : (
+                <button
+                  onClick={() => setActiveReportId(item.id)}
+                  className="inline-flex items-center gap-1 text-[11px] text-gray-400 hover:text-amber-700 transition-colors p-1"
+                  title={t.codesYouCopy.reportCode}
+                >
+                  <AlertCircle className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">{t.codesYouCopy.reportCode}</span>
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
