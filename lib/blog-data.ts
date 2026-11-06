@@ -8,6 +8,7 @@ export interface BlogPost {
   contentAr: string[];
   date: string;
   readTime: string;
+  category?: string;
   keywords: string[];
 }
 
