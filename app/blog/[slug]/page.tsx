@@ -6,6 +6,8 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { BlogPostContent } from "@/components/BlogPostContent";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+
 interface Props {
   params: { slug: string };
 }
@@ -21,21 +23,21 @@ export function generateMetadata({ params }: Props): Metadata {
   if (!post) return { title: "Article Not Found | NusukKey" };
 
   return {
-    title: `${post.titleEn} | NusukKey Blog`,
+    title: `${post.titleEn} | NusukKey Guides`,
     description: post.excerptEn,
     keywords: post.keywords,
     alternates: {
-      canonical: `https://nusuk-keys.vercel.app/blog/${post.slug}`,
+      canonical: `${siteUrl}/blog/${post.slug}`,
       languages: {
-        en: `https://nusuk-keys.vercel.app/blog/${post.slug}`,
-        ar: `https://nusuk-keys.vercel.app/ar/blog/${post.slug}`,
+        en: `${siteUrl}/blog/${post.slug}`,
+        ar: `${siteUrl}/ar/blog/${post.slug}`,
       },
     },
     openGraph: {
       title: post.titleEn,
       description: post.excerptEn,
       type: "article",
-      url: `https://nusuk-keys.vercel.app/blog/${post.slug}`,
+      url: `${siteUrl}/blog/${post.slug}`,
     },
   };
 }
@@ -54,14 +56,14 @@ export default function BlogPostPage({ params }: Props) {
     author: {
       "@type": "Organization",
       name: "NusukKey Community",
-      url: "https://nusuk-keys.vercel.app",
+      url: siteUrl,
     },
     publisher: {
       "@type": "Organization",
       name: "NusukKey",
-      url: "https://nusuk-keys.vercel.app",
+      url: siteUrl,
     },
-    mainEntityOfPage: `https://nusuk-keys.vercel.app/blog/${post.slug}`,
+    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
   };
 
   return (

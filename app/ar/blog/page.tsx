@@ -4,15 +4,17 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { BlogListContent } from "@/components/BlogListContent";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+
 export const metadata: Metadata = {
   title: "مدونة مفاتيح نسك | شروحات ورموز إحالة نسك المجانية 2026",
   description: "تعرف على كيفية الحصول على مفاتيح مسابقة نسك مجاناً، وحل مشكلة الرمز غير صالح، وأين تجد رمز الدعوة الخاص بك لزيادة فرص الفوز في مسابقة العمرة.",
   keywords: ["مدونة نسك", "رموز نسك المجانية", "مسابقة نسك للعمرة", "شرح تطبيق نسك"],
   alternates: {
-    canonical: "https://nusuk-keys.vercel.app/ar/blog",
+    canonical: `${siteUrl}/ar/blog`,
     languages: {
-      en: "https://nusuk-keys.vercel.app/blog",
-      ar: "https://nusuk-keys.vercel.app/ar/blog",
+      en: `${siteUrl}/blog`,
+      ar: `${siteUrl}/ar/blog`,
     },
   },
 };

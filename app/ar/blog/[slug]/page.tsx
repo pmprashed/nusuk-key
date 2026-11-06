@@ -6,6 +6,8 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { BlogPostContent } from "@/components/BlogPostContent";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+
 interface Props {
   params: { slug: string };
 }
@@ -25,17 +27,17 @@ export function generateMetadata({ params }: Props): Metadata {
     description: post.excerptAr,
     keywords: post.keywords,
     alternates: {
-      canonical: `https://nusuk-keys.vercel.app/ar/blog/${post.slug}`,
+      canonical: `${siteUrl}/ar/blog/${post.slug}`,
       languages: {
-        en: `https://nusuk-keys.vercel.app/blog/${post.slug}`,
-        ar: `https://nusuk-keys.vercel.app/ar/blog/${post.slug}`,
+        en: `${siteUrl}/blog/${post.slug}`,
+        ar: `${siteUrl}/ar/blog/${post.slug}`,
       },
     },
     openGraph: {
       title: post.titleAr,
       description: post.excerptAr,
       type: "article",
-      url: `https://nusuk-keys.vercel.app/ar/blog/${post.slug}`,
+      url: `${siteUrl}/ar/blog/${post.slug}`,
     },
   };
 }
@@ -54,14 +56,14 @@ export default function ArabicBlogPostPage({ params }: Props) {
     author: {
       "@type": "Organization",
       name: "NusukKey Community",
-      url: "https://nusuk-keys.vercel.app",
+      url: `${siteUrl}/ar`,
     },
     publisher: {
       "@type": "Organization",
       name: "مفاتيح نسك",
-      url: "https://nusuk-keys.vercel.app/ar",
+      url: `${siteUrl}/ar`,
     },
-    mainEntityOfPage: `https://nusuk-keys.vercel.app/ar/blog/${post.slug}`,
+    mainEntityOfPage: `${siteUrl}/ar/blog/${post.slug}`,
   };
 
   return (

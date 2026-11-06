@@ -4,15 +4,17 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { BlogListContent } from "@/components/BlogListContent";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+
 export const metadata: Metadata = {
   title: "Nusuk Key Blog & Guides | Free Nusuk Referral Codes 2026",
   description: "Learn how to get free Nusuk competition keys, fix invalid referral code errors, and find your own Nusuk invite code to earn Umrah competition points.",
   keywords: ["nusuk blog", "nusuk referral code guide", "how to get free nusuk keys", "nusuk umrah competition 2026"],
   alternates: {
-    canonical: "https://nusuk-keys.vercel.app/blog",
+    canonical: `${siteUrl}/blog`,
     languages: {
-      en: "https://nusuk-keys.vercel.app/blog",
-      ar: "https://nusuk-keys.vercel.app/ar/blog",
+      en: `${siteUrl}/blog`,
+      ar: `${siteUrl}/ar/blog`,
     },
   },
 };
