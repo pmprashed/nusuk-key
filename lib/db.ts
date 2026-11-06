@@ -202,25 +202,21 @@ export async function addCode(params: {
     return { error: "duplicate" };
   }
 
-  // Daily submission limit updated to 10 (paused for 25 days until Nov 30, 2026)
+  // Active daily submission limit: exactly 10 codes per 24 hours per user
   const DAILY_SUBMISSION_LIMIT = 10;
-  const LIMIT_PAUSED_UNTIL = new Date("2026-11-30T23:59:59.999Z").getTime();
-  const isLimitPaused = Date.now() < LIMIT_PAUSED_UNTIL;
 
   if (supabase) {
     try {
-      if (!isLimitPaused) {
-        const { count: dailyCount, error: countErr } = await supabase
-          .from("submissions")
-          .select("*", { count: "exact", head: true })
-          .eq("submitter_hash", params.submitterHash)
-          .gte("created_at", oneDayAgo);
+      const { count: dailyCount, error: countErr } = await supabase
+        .from("submissions")
+        .select("*", { count: "exact", head: true })
+        .eq("submitter_hash", params.submitterHash)
+        .gte("created_at", oneDayAgo);
 
-        if (countErr) {
-          console.error("Error checking daily submission limit:", countErr);
-        } else if ((dailyCount ?? 0) >= DAILY_SUBMISSION_LIMIT) {
-          return { error: "limit_exceeded" };
-        }
+      if (countErr) {
+        console.error("Error checking daily submission limit:", countErr);
+      } else if ((dailyCount ?? 0) >= DAILY_SUBMISSION_LIMIT) {
+        return { error: "limit_exceeded" };
       }
 
       // Check if code already listed (strictly case-insensitive)
@@ -269,19 +265,14 @@ export async function addCode(params: {
     }
   }
 
-  // Memory fallback
-  const LIMIT_PAUSED_UNTIL_MEM = new Date("2026-11-30T23:59:59.999Z").getTime();
-  const isLimitPausedMem = Date.now() < LIMIT_PAUSED_UNTIL_MEM;
+  // Memory fallback - Active daily submission limit: 10 codes per 24 hours
   const DAILY_SUBMISSION_LIMIT_MEM = 10;
+  const userSubmissionsLast24h = memoryStore.submissions.filter(
+    (s) => s.submitter_hash === params.submitterHash && s.created_at >= oneDayAgo
+  ).length;
 
-  if (!isLimitPausedMem) {
-    const userSubmissionsLast24h = memoryStore.submissions.filter(
-      (s) => s.submitter_hash === params.submitterHash && s.created_at >= oneDayAgo
-    ).length;
-
-    if (userSubmissionsLast24h >= DAILY_SUBMISSION_LIMIT_MEM) {
-      return { error: "limit_exceeded" };
-    }
+  if (userSubmissionsLast24h >= DAILY_SUBMISSION_LIMIT_MEM) {
+    return { error: "limit_exceeded" };
   }
 
   const existing = memoryStore.codes.find((c) => c.code.toUpperCase() === extractedCode);
