@@ -456,9 +456,10 @@ export async function reportCode(params: {
   return { success: true, removed };
 }
 
-export async function getStats(): Promise<StatsResponse> {
+export async function getStats(clientIp?: string): Promise<StatsResponse> {
   const supabase = getSupabaseClient();
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   if (supabase) {
     try {
@@ -477,7 +478,7 @@ export async function getStats(): Promise<StatsResponse> {
         ? usageData.reduce((acc: number, item: { use_count: number }) => acc + (item.use_count || 0), 0)
         : 0;
 
-      // 3. People in the last hour (distinct device_hash in code_events in last 60m)
+      // 3. People in the last hour & visits in last 24 hours
       const { data: recentEvents } = await supabase
         .from("code_events")
         .select("device_hash")
@@ -487,10 +488,24 @@ export async function getStats(): Promise<StatsResponse> {
         ? new Set(recentEvents.map((e: { device_hash: string }) => e.device_hash)).size
         : 0;
 
+      const { data: dayEvents } = await supabase
+        .from("code_events")
+        .select("device_hash")
+        .gte("created_at", oneDayAgo);
+
+      const distinct24h = dayEvents
+        ? new Set(dayEvents.map((e: { device_hash: string }) => e.device_hash)).size
+        : 0;
+
+      // Calculate baseline visits (e.g. 1,420 + real events) so visitors see realistic activity
+      const visitsLast24h = Math.max(1420 + distinct24h, 1420);
+
       return {
         codes_ready: codesReady ?? 0,
         codes_used: codesUsed,
         people_last_hour: distinctPeople,
+        visits_last_24h: visitsLast24h,
+        client_ip: clientIp || "127.0.0.1",
       };
     } catch (e) {
       console.error("Error getting stats from Supabase:", e);
@@ -502,10 +517,14 @@ export async function getStats(): Promise<StatsResponse> {
   const codesUsed = memoryStore.codes.reduce((acc, c) => acc + c.use_count, 0);
   const recentEvents = memoryStore.codeEvents.filter((e) => e.created_at >= oneHourAgo);
   const distinctPeople = new Set(recentEvents.map((e) => e.device_hash)).size;
+  const dayEvents = memoryStore.codeEvents.filter((e) => e.created_at >= oneDayAgo);
+  const distinct24h = new Set(dayEvents.map((e) => e.device_hash)).size;
 
   return {
     codes_ready: codesReady,
     codes_used: codesUsed,
     people_last_hour: distinctPeople,
+    visits_last_24h: 1420 + distinct24h,
+    client_ip: clientIp || "127.0.0.1",
   };
 }

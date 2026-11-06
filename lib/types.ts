@@ -18,6 +18,8 @@ export interface StatsResponse {
   codes_ready: number;
   codes_used: number;
   people_last_hour: number;
+  visits_last_24h?: number;
+  client_ip?: string;
 }
 
 export interface CopiedCodeLocal {

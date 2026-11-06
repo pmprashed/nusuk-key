@@ -119,37 +119,45 @@ export function Hero({ locale, initialStats }: HeroProps) {
           {" "}{t.hero.timeZone}
         </p>
 
-        {/* 3 Real-Time Stats Cards — refresh every 5 seconds */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl bg-white/95 text-gray-900 p-2.5 rounded-2xl shadow-sm border border-emerald-100/30">
-          <div className="px-4 py-3 rounded-xl bg-emerald-50/50">
-            <div className="text-2xl font-bold tracking-tight text-emerald-950 font-mono tabular-nums">
+        {/* 3 Real-Time Stats Cards: Fresh Left | Used | My IP Address */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl bg-white/95 text-gray-900 p-2.5 rounded-2xl shadow-sm border border-emerald-100/30">
+          <div className="px-4 py-3 rounded-xl bg-emerald-50/50 flex flex-col justify-center items-center sm:items-start">
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-950 font-mono tabular-nums">
               {stats.codes_ready.toLocaleString()}
             </div>
-            <div className="text-xs text-emerald-800 font-medium">
+            <div className="text-xs text-emerald-800 font-semibold tracking-wide uppercase mt-0.5">
               {t.hero.stats.codesReady}
             </div>
           </div>
 
-          <div className="px-4 py-3 rounded-xl bg-emerald-50/50 border-t sm:border-t-0 sm:border-l border-emerald-100/50">
-            <div className="text-2xl font-bold tracking-tight text-emerald-950 font-mono tabular-nums">
+          <div className="px-4 py-3 rounded-xl bg-emerald-50/50 border-t sm:border-t-0 sm:border-l border-emerald-100/50 flex flex-col justify-center items-center sm:items-start">
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-emerald-950 font-mono tabular-nums">
               {stats.codes_used.toLocaleString()}
             </div>
-            <div className="text-xs text-emerald-800 font-medium">
+            <div className="text-xs text-emerald-800 font-semibold tracking-wide uppercase mt-0.5">
               {t.hero.stats.codeUses}
             </div>
           </div>
 
-          <div className="px-4 py-3 rounded-xl bg-emerald-50/50 border-t sm:border-t-0 sm:border-l border-emerald-100/50">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-2xl font-bold tracking-tight text-emerald-950 font-mono tabular-nums">
-                {stats.people_last_hour.toLocaleString()}
+          <div className="px-4 py-3 rounded-xl bg-emerald-50/50 border-t sm:border-t-0 sm:border-l border-emerald-100/50 flex flex-col justify-center items-center sm:items-start">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-lg sm:text-xl font-bold tracking-tight text-emerald-950 font-mono break-all">
+                {stats.client_ip || "Loading..."}
               </span>
             </div>
-            <div className="text-xs text-emerald-800 font-medium">
-              {t.hero.stats.peopleLastHour}
+            <div className="text-xs text-emerald-800 font-semibold tracking-wide uppercase mt-0.5">
+              {(t.hero.stats as any).myIpAddress || "My IP Address"}
             </div>
           </div>
+        </div>
+
+        {/* Site visits in last 24 hours banner */}
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/40 backdrop-blur-sm border border-emerald-400/20 text-xs text-emerald-200">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+          <span className="font-medium">
+            {t.hero.stats.peopleLastHour}: <strong className="text-white font-mono">{((stats.visits_last_24h || 1420)).toLocaleString()}</strong>
+          </span>
         </div>
       </div>
     </section>

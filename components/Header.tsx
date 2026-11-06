@@ -42,10 +42,12 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
   const homeHref = locale === "ar" ? "/ar" : "/";
   const codesHref = locale === "ar" ? "/ar/codes" : "/codes";
   const guideHref = locale === "ar" ? "/ar/guide" : "/guide";
+  const blogHref = locale === "ar" ? "/ar/blog" : "/blog";
 
   const isHomeActive = pathname === homeHref || (locale === "en" && pathname === "");
   const isCodesActive = pathname === codesHref;
   const isGuideActive = pathname.includes("/guide");
+  const isBlogActive = pathname.includes("/blog");
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all">
@@ -86,6 +88,14 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
             }`}
           >
             {t.nav.guide}
+          </Link>
+          <Link
+            href={blogHref}
+            className={`transition-colors hover:text-emerald-800 ${
+              isBlogActive ? "text-emerald-800 font-semibold border-b-2 border-emerald-800 pb-1" : ""
+            }`}
+          >
+            {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
           <Link
             href={getOppositeLocaleUrl()}
@@ -148,6 +158,13 @@ export function Header({ locale, onOpenShareModal }: HeaderProps) {
             className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
           >
             {t.nav.guide}
+          </Link>
+          <Link
+            href={blogHref}
+            onClick={() => setMobileMenuOpen(false)}
+            className="block py-2 text-base font-medium text-gray-800 hover:text-emerald-800"
+          >
+            {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
           <Link
             href={getOppositeLocaleUrl()}

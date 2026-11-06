@@ -117,6 +117,10 @@ export function SeoBlock({ locale }: { locale: Locale }) {
         <Link href={p("/nusuk-competition")} className="hover:underline">
           {isAr ? "دليل مسابقة العمرة" : "Umrah Challenge Guide"}
         </Link>
+        <span className="text-gray-300">•</span>
+        <Link href={p("/blog")} className="hover:underline font-bold text-emerald-800">
+          {isAr ? "مدونة مفاتيح نسك والشروحات" : "Nusuk Key Blog & Guides"}
+        </Link>
       </div>
     </section>
   );

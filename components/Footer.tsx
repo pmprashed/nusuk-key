@@ -29,6 +29,10 @@ export function Footer({ locale }: { locale: Locale }) {
             {t.footer.findCode}
           </Link>
           <span className="text-gray-300 hidden sm:inline">•</span>
+          <Link href={p("/blog")} className="hover:underline text-emerald-900 font-bold">
+            {locale === "ar" ? "المدونة" : "Blog"}
+          </Link>
+          <span className="text-gray-300 hidden sm:inline">•</span>
           <Link href={p("/privacy")} className="hover:underline">
             {t.footer.privacy}
           </Link>

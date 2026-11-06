@@ -30,9 +30,10 @@
     "timeZone": "بتوقيت مكة المكرمة",
     "visitsToday": "13,001 زيارة اليوم",
     "stats": {
-      "codesReady": "رمزاً جاهزاً",
-      "codeUses": "رمزاً مستخدماً",
-      "peopleLastHour": "شخصاً في الساعة الأخيرة"
+      "codesReady": "المتبقي الجديد",
+      "codeUses": "المستخدم",
+      "peopleLastHour": "زيارات الموقع آخر 24 ساعة",
+      "myIpAddress": "عنوان IP الخاص بي"
     }
   },
   "nextCode": {
