@@ -256,19 +256,19 @@ export function NextCodeCard({ locale, initialCode, onCodeCopied }: NextCodeCard
           {deepLink && (
             <button
               onClick={handleOpenNusuk}
-              className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 px-6 py-3.5 rounded-xl font-semibold text-sm sm:text-base shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-emerald-900 active:scale-[0.98]"
+              className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-white via-emerald-50 to-white hover:from-white hover:to-emerald-100 text-emerald-950 px-6 py-3.5 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] border border-emerald-200/60"
             >
-              <ExternalLink className="w-4 h-4 text-emerald-800" />
+              <ExternalLink className="w-4 h-4 text-emerald-700" />
               <span>{t.nextCode.openBtn}</span>
             </button>
           )}
 
           <button
             onClick={handleCopy}
-            className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-all focus:outline-none focus:ring-2 focus:ring-emerald-400 active:scale-[0.98] ${
+            className={`inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] ${
               deepLink
-                ? "bg-emerald-800/80 hover:bg-emerald-700/90 text-white border border-emerald-700/60"
-                : "w-full bg-white hover:bg-emerald-50 text-emerald-950 shadow-sm"
+                ? "bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white border border-emerald-500/40"
+                : "w-full bg-white hover:bg-emerald-50 text-emerald-950"
             }`}
           >
             {copied ? (

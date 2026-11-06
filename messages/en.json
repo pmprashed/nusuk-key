@@ -30,10 +30,15 @@
     "timeZone": "at 0:17 (Saudi Arabian Time)",
     "visitsToday": "13,001 visits today",
     "stats": {
+      "totalKey": "Total Key",
+      "totalUsed": "Total Used",
+      "myKey": "My Key",
+      "iUsed": "I Used",
+      "remaining": "Remaining",
+      "myIpAddress": "My IP Address",
       "codesReady": "Fresh Left",
       "codeUses": "Used",
-      "peopleLastHour": "Site visits last 24h",
-      "myIpAddress": "My IP Address"
+      "peopleLastHour": "Site visits last 24h"
     }
   },
   "nextCode": {
