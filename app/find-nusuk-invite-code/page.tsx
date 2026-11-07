@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { FindCodeGuideView } from "@/components/FindCodeGuideView";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
 
 export const metadata: Metadata = {
   title: "How to Find and Share Your Nusuk Invite Code (3 Steps)",

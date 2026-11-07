@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import { BlogListContent } from "@/components/BlogListContent";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
 
 export const metadata: Metadata = {
   title: "Nusuk Key Blog & Guides | Free Nusuk Referral Codes 2026",

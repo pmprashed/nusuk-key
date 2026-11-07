@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { PrivacyView } from "@/components/PrivacyView";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
 
 export const metadata: Metadata = {
   title: "Privacy Policy - NusukKey Independent Community",

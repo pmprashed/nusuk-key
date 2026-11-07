@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { ContactView } from "@/components/ContactView";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
 
 export const metadata: Metadata = {
   title: "اتصل بنا - مجتمع مفاتيح نسك",

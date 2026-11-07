@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blog-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
   const now = new Date();
 
   const coreRoutes = [

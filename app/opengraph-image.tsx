@@ -132,7 +132,7 @@ export default function Image() {
               fontWeight: "600",
             }}
           >
-            🌐 nusukkey.com
+            🌐 nusuk-keys.vercel.app
           </div>
           <div
             style={{

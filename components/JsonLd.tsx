@@ -59,7 +59,7 @@ export function WebSiteJsonLd({
 }
 
 export function AutoStructuredData({ locale }: { locale: Locale }) {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
   const isAr = locale === "ar";
 
   const faqs: FaqItem[] = isAr

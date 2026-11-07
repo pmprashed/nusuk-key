@@ -57,7 +57,7 @@ git push -u origin main
 | `SUPABASE_URL` | Your Supabase project URL | `https://xyzproject.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service_role secret key | `eyJhbGciOi...` |
 | `HASH_SALT` | Random string for salted SHA-256 device hashing | `long_random_salt_12345678` |
-| `NEXT_PUBLIC_SITE_URL` | Your public domain | `https://nusukkey.com` |
+| `NEXT_PUBLIC_SITE_URL` | Your public domain | `https://nusuk-keys.vercel.app` |
 | `NEXT_PUBLIC_NUSUK_DEEP_LINK_TEMPLATE` | Confirmed Nusuk deep link (pre-configured) | `https://services.nusuk.sa/app?p=27&id={code}` |
 | `NUSUK_DEEP_LINK_TEMPLATE` | Same as above (server-side) | `https://services.nusuk.sa/app?p=27&id={code}` |
 

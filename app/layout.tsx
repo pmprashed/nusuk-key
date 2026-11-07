@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusukkey.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://nusuk-keys.vercel.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
       "Fresh referral codes for the Nusuk Free Umrah Competition with fair rotation.",
   },
   verification: {
-    google: "google1aa3ad58d43a8521",
+    google: "1aa3ad58d43a8521",
   },
 };
 
