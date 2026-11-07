@@ -46,7 +46,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
   const locale = propLocale || contextLocale;
 
   const [stats, setStats] = useState<StatsResponse>(
-    initialStats || { codes_ready: 5644, codes_used: 954293, people_last_hour: 48, visits_last_24h: 1462, client_ip: "103.131.180.76" }
+    initialStats || { codes_ready: 5644, codes_used: 954293, people_last_hour: 48, visits_last_24h: 1484, client_ip: "103.131.180.76" }
   );
   const [saudiTime, setSaudiTime] = useState(() => getSaudiTimeString(locale));
   const [iUsedCount, setIUsedCount] = useState(0);
@@ -117,7 +117,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
 
   const totalKeys = stats.codes_ready || 5644;
   const totalUsed = stats.codes_used || 954293;
-  const visits24h = stats.visits_last_24h || 1462;
+  const visits24h = stats.visits_last_24h || 1484;
   const freshKeys = Math.max(0, totalKeys - iUsedCount);
 
   return (

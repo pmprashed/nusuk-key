@@ -234,10 +234,10 @@ export function NextCodeCard({
   const timeAgoStr = formatTimeAgo(code.created_at, locale);
   const deepLink = getNusukDeepLink(code.code);
 
-  // Format code with clean spaces like "NG - L P L O W S E B"
+  // Format code cleanly on 1 single line (e.g., NG - 2MqwkXns)
   const formattedCodeDisplay = code.code.startsWith("NG-")
-    ? `NG - ${code.code.slice(3).split("").join(" ")}`
-    : code.code.split("").join(" ");
+    ? `NG - ${code.code.slice(3)}`
+    : code.code;
 
   const shareText = encodeURIComponent(
     `Get +1 Free Key for the Nusuk Umrah Competition using my code: ${code.code} ! Claim here: https://nusuk-keys.vercel.app`
@@ -288,14 +288,24 @@ export function NextCodeCard({
           </div>
         </div>
 
-        {/* Big Monospace Code Display */}
-        <div className="my-2 py-3 px-2 text-center sm:text-left">
+        {/* Sleek, Single-Line Monospace Code Container */}
+        <div className="my-2.5 py-1">
           <div
-            className={`font-mono font-black tracking-[0.18em] sm:tracking-[0.28em] text-2xl sm:text-4xl lg:text-5xl text-white select-all drop-shadow-md transition-all duration-300 ${
+            className={`w-full py-2.5 sm:py-3.5 px-3.5 sm:px-6 rounded-2xl bg-black/30 border border-emerald-400/40 backdrop-blur-md flex items-center justify-between gap-3 shadow-inner transition-all duration-300 ${
               rotating ? "opacity-25 scale-95 blur-xs" : "opacity-100 scale-100 blur-none"
             }`}
           >
-            {formattedCodeDisplay}
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <span className="text-amber-300 text-lg sm:text-xl drop-shadow-sm">🔑</span>
+              <span className="font-mono font-black text-xl sm:text-2xl md:text-3xl text-white tracking-[0.08em] sm:tracking-[0.14em] select-all whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-md">
+                {formattedCodeDisplay}
+              </span>
+            </div>
+
+            <div className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-400/30 text-[10px] sm:text-xs font-mono font-bold text-emerald-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>ACTIVE</span>
+            </div>
           </div>
         </div>
 

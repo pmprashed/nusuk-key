@@ -170,7 +170,7 @@ export function MoreCodesList({ locale: propLocale, onCodeCopiedGlobal }: MoreCo
               </div>
 
               {/* Middle: Code NG-XXXXXXXX in Bold Monospace */}
-              <div className="text-base sm:text-lg font-black font-mono tracking-wider text-gray-900 group-hover:text-emerald-950 select-all">
+              <div className="text-base sm:text-lg font-black font-mono tracking-wider text-gray-900 group-hover:text-emerald-950 select-all whitespace-nowrap">
                 {item.code}
               </div>
 

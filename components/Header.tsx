@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Send, Menu, X, Globe, ChevronDown, Check } from "lucide-react";
+import { Send, Menu, X, Globe, ChevronDown, Check, Smartphone } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Locale } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
 import { SUPPORTED_LOCALES } from "@/lib/languages";
+import { InstallAppModal } from "./InstallAppModal";
 
 export function KeyIcon({ className = "w-6 h-6 text-emerald-600" }: { className?: string }) {
   return (
@@ -29,7 +30,23 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    const openModal = () => setIsInstallModalOpen(true);
+    window.addEventListener("nusuk:open_install_modal", openModal);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("nusuk:open_install_modal", openModal);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,6 +76,20 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
     setLocale(newCode);
     setLangDropdownOpen(false);
     setMobileMenuOpen(false);
+  };
+
+  const handleOpenInstallApp = async () => {
+    if (deferredPrompt) {
+      try {
+        await deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === "accepted") {
+          setDeferredPrompt(null);
+          return;
+        }
+      } catch {}
+    }
+    setIsInstallModalOpen(true);
   };
 
   return (
@@ -125,8 +156,21 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
           </a>
         </nav>
 
-        {/* Right Section: Language Dropdown & Submit Key Button */}
+        {/* Right Section: Mobile App Button + Language Dropdown + Submit Key Button */}
         <div className="hidden sm:flex items-center gap-3">
+          {/* Eye-Catching Mobile App Button */}
+          <button
+            onClick={handleOpenInstallApp}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50 hover:from-emerald-100 hover:to-teal-100 border border-emerald-400/50 text-emerald-950 font-black text-xs transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer group"
+            title="Install Mobile App on Phone"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-700 animate-pulse group-hover:rotate-12 transition-transform" />
+            <span>{locale === "ar" ? "تطبيق الهاتف" : locale === "bn" ? "মোবাইল অ্যাপ" : "Mobile App"}</span>
+            <span className="px-1.5 py-0.2 rounded-full bg-emerald-700 text-[9px] font-black text-white tracking-wide">
+              PWA
+            </span>
+          </button>
+
           {/* International 21-Language Selector Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
@@ -182,7 +226,17 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
         </div>
 
         {/* Mobile Actions */}
-        <div className="flex sm:hidden items-center gap-2">
+        <div className="flex sm:hidden items-center gap-1.5">
+          {/* Mobile App Install Button */}
+          <button
+            onClick={handleOpenInstallApp}
+            className="inline-flex items-center gap-1 bg-gradient-to-r from-emerald-100 to-teal-100 border border-emerald-300 text-emerald-950 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-2xs"
+            title="Install Mobile App"
+          >
+            <Smartphone className="w-3.5 h-3.5 text-emerald-700" />
+            <span>App</span>
+          </button>
+
           {/* Mobile Quick Globe button */}
           <button
             onClick={() => setMobileMenuOpen(true)}
@@ -281,6 +335,13 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
           </div>
         </div>
       )}
+      {/* Global Install App Modal accessible from Navbar */}
+      <InstallAppModal
+        locale={locale}
+        isOpen={isInstallModalOpen}
+        onClose={() => setIsInstallModalOpen(false)}
+        deferredPrompt={deferredPrompt}
+      />
     </header>
   );
 }

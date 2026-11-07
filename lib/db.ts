@@ -2,15 +2,22 @@ import { createClient } from "@supabase/supabase-js";
 import { CodeItem, EventType, ReportType, StatsResponse } from "./types";
 import { INITIAL_FALLBACK_CODES, INITIAL_CODES_DATA } from "./initial-codes";
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const DEFAULT_SUPABASE_URL = "https://rrmkrqogalodctqqtbbq.supabase.co";
+const DEFAULT_SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJybWtycW9nYWxvZGN0cXF0YmJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4Njk3MDAsImV4cCI6MjEwOTQ0NTcwMH0.Jpi76SRjJJH-KdQFWsXJg9kwJcV-9pHKY1wemUfdvF0";
+
+const supabaseUrl =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  DEFAULT_SUPABASE_URL;
+
 const supabaseKey =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SECRET_KEY ||
   process.env.SUPABASE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   process.env.SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  DEFAULT_SUPABASE_KEY;
 
 const isSupabaseConfigured = Boolean(
   supabaseUrl &&
@@ -538,27 +545,10 @@ export async function reportCode(params: {
 
 export async function getStats(clientIp?: string): Promise<StatsResponse> {
   const supabase = getSupabaseClient();
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   if (supabase) {
     try {
-      // 1. Codes ready (active count)
-      const { count: codesReady } = await supabase
-        .from("codes")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "active");
-
-      // 2. Codes used (sum of use_count)
-      const { data: usageData } = await supabase
-        .from("codes")
-        .select("use_count");
-
-      const codesUsed = usageData && usageData.length > 0
-        ? usageData.reduce((acc: number, item: { use_count: number }) => acc + (item.use_count || 0), 0)
-        : 954293;
-
-      // 3. Track site visit if clientIp provided
+      // 1. Record site visit in database if clientIp provided
       if (clientIp && clientIp !== "127.0.0.1") {
         try {
           const ipHash = clientIp.replace(/[^a-zA-Z0-9]/g, "").slice(0, 32);
@@ -566,35 +556,18 @@ export async function getStats(clientIp?: string): Promise<StatsResponse> {
         } catch {}
       }
 
-      // 4. People in the last hour & visits in last 24 hours
-      const { data: recentEvents } = await supabase
-        .from("code_events")
-        .select("device_hash")
-        .gte("created_at", oneHourAgo);
+      // 2. Fetch live aggregate stats via RPC (always 1200 + real visits, and true sum of codes_used)
+      const { data: summary, error: rpcErr } = await supabase.rpc("get_stats_summary");
 
-      const distinctPeople = recentEvents
-        ? new Set(recentEvents.map((e: { device_hash: string }) => e.device_hash)).size
-        : 0;
-
-      const { count: realVisits24h } = await supabase
-        .from("site_visits")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", oneDayAgo);
-
-      // Smooth realistic dynamic visits curve throughout the day + real recorded visits
-      const now = new Date();
-      const hourOfDay = now.getUTCHours();
-      const minuteOfHour = now.getUTCMinutes();
-      const dynamicDelta = Math.floor(Math.sin((hourOfDay + minuteOfHour / 60) * 0.26) * 35 + 40);
-      const visitsLast24h = 1420 + dynamicDelta + (realVisits24h ?? 0);
-
-      return {
-        codes_ready: codesReady ?? 5644,
-        codes_used: codesUsed,
-        people_last_hour: Math.max(distinctPeople, 35 + (minuteOfHour % 25)),
-        visits_last_24h: visitsLast24h,
-        client_ip: clientIp || "103.131.180.76",
-      };
+      if (!rpcErr && summary) {
+        return {
+          codes_ready: Number(summary.codes_ready || 5644),
+          codes_used: Number(summary.codes_used || 954293),
+          people_last_hour: Math.max(Number(summary.people_last_hour || 0), 45),
+          visits_last_24h: Number(summary.visits_last_24h || 1483),
+          client_ip: clientIp || "103.131.180.76",
+        };
+      }
     } catch (e) {
       console.error("Error getting stats from Supabase:", e);
     }
@@ -602,15 +575,13 @@ export async function getStats(clientIp?: string): Promise<StatsResponse> {
 
   // Memory fallback: real numbers from store
   const codesReady = memoryStore.codes.filter((c) => c.status === "active").length;
-  const codesUsed = memoryStore.codes.reduce((acc, c) => acc + c.use_count, 0) || 951845;
-  const now = new Date();
-  const dynamicDelta = Math.floor(Math.sin((now.getUTCHours() + now.getUTCMinutes() / 60) * 0.26) * 35 + 40);
+  const codesUsed = memoryStore.codes.reduce((acc, c) => acc + c.use_count, 0) || 954293;
 
   return {
     codes_ready: codesReady || 5644,
     codes_used: codesUsed,
-    people_last_hour: 45 + (now.getUTCMinutes() % 20),
-    visits_last_24h: 1420 + dynamicDelta,
+    people_last_hour: 45,
+    visits_last_24h: 1483,
     client_ip: clientIp || "103.131.180.76",
   };
 }
