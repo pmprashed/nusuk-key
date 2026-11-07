@@ -77,6 +77,9 @@ export const metadata: Metadata = {
     description:
       "Fresh referral codes for the Nusuk Free Umrah Competition with fair rotation.",
   },
+  verification: {
+    google: "google1aa3ad58d43a8521",
+  },
 };
 
 export const viewport: Viewport = {
