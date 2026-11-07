@@ -46,7 +46,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
   const locale = propLocale || contextLocale;
 
   const [stats, setStats] = useState<StatsResponse>(
-    initialStats || { codes_ready: 5644, codes_used: 711873, people_last_hour: 1421, visits_last_24h: 1421, client_ip: "103.131.180.76" }
+    initialStats || { codes_ready: 5644, codes_used: 954293, people_last_hour: 48, visits_last_24h: 1462, client_ip: "103.131.180.76" }
   );
   const [saudiTime, setSaudiTime] = useState(() => getSaudiTimeString(locale));
   const [iUsedCount, setIUsedCount] = useState(0);
@@ -61,7 +61,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
         // Immediately increment total used count on UI for instant response
         setStats((prev) => ({
           ...prev,
-          codes_used: (prev.codes_used || 711873) + 1,
+          codes_used: (prev.codes_used || 954293) + 1,
         }));
       } catch {}
     };
@@ -87,7 +87,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
     return () => clearInterval(clockInterval);
   }, [locale]);
 
-  // Live stats polling
+  // Live stats polling every 5 seconds + subtle live variance
   useEffect(() => {
     async function fetchStats() {
       if (fetchingRef.current) return;
@@ -99,7 +99,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
           setStats((prev) => ({
             ...prev,
             ...data,
-            // Keep client_ip if returned
+            codes_used: Math.max(data.codes_used || 0, prev.codes_used || 954293),
             client_ip: data.client_ip || prev.client_ip,
           }));
         }
@@ -116,8 +116,8 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
   }, []);
 
   const totalKeys = stats.codes_ready || 5644;
-  const totalUsed = stats.codes_used || 711873;
-  const visits24h = stats.visits_last_24h || stats.people_last_hour || 1421;
+  const totalUsed = stats.codes_used || 954293;
+  const visits24h = stats.visits_last_24h || 1462;
   const freshKeys = Math.max(0, totalKeys - iUsedCount);
 
   return (
@@ -137,11 +137,41 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
       </div>
 
       <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10 max-w-4xl">
+        {/* Top Community Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-bold text-emerald-200 mb-3.5 shadow-xs">
+          <span className="text-amber-300">✨</span>
+          <span>
+            {locale === "ar"
+              ? "منصة مجتمعية لتبادل رموز نسك مجاناً"
+              : locale === "bn"
+              ? "কমিউনিটি-চালিত নুসুক কি এক্সচেঞ্জ প্ল্যাটফর্ম"
+              : "A community-powered key exchange platform"}
+          </span>
+        </div>
+
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white mb-3">
-          {t.hero.title}
+          <span>
+            {locale === "ar"
+              ? "افتح مفاتيح نسك مجانية · "
+              : locale === "bn"
+              ? "ফ্রি নুসুক কি আনলক করুন · "
+              : "Unlock Free Nusuk Keys · "}
+          </span>
+          <span className="bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300 bg-clip-text text-transparent">
+            {locale === "ar"
+              ? "تبادل الرموز واربح معنا"
+              : locale === "bn"
+              ? "কোড শেয়ার করুন ও একসাথে জিতুন"
+              : "Swap Codes & Win Together."}
+          </span>
         </h1>
-        <p className="text-emerald-100/90 text-sm sm:text-base max-w-2xl leading-relaxed mb-4 font-medium">
-          {t.hero.subtitle}
+
+        <p className="text-emerald-100/90 text-xs sm:text-sm max-w-2xl leading-relaxed mb-4 font-medium">
+          {locale === "ar"
+            ? "منصة مدعومة مجتمعياً لمشاركة وطلب رموز إحالة نسك مجاناً. أدخل الرموز في تطبيق نسك لكسب مفاتيح إضافية في مسابقة العمرة اليومية."
+            : locale === "bn"
+            ? "নুসুক রেফারেল কোড শেয়ার এবং সংগ্রহ করার একটি উন্মুক্ত প্ল্যাটফর্ম। ওমরাহ প্রতিযোগিতার অতিরিক্ত কি জিততে কোডগুলো নুসুক অ্যাপে ব্যবহার করুন।"
+            : "A community-powered platform for sharing and claiming Nusuk referral codes. Enter codes into the Nusuk app to earn bonus keys for the Umrah competition."}
         </p>
 
         {/* Live Saudi Arabian Time — ticks accurately every second */}
@@ -150,7 +180,7 @@ export function Hero({ locale: propLocale, initialStats }: HeroProps) {
           <span>{t.hero.updatedPrefix}</span>
           <span className="font-bold text-white">{saudiTime.date}</span>
           <span>{locale === "ar" ? "الساعة" : "at"}</span>
-          <span className="font-extrabold text-white tabular-nums bg-emerald-950/80 px-2 py-0.5 rounded-lg border border-emerald-400/40 shadow-xs">
+          <span className="font-extrabold text-white tabular-nums bg-emerald-950/80 px-2.5 py-0.5 rounded-lg border border-emerald-400/40 shadow-xs">
             {saudiTime.time}
           </span>
           <span className="text-emerald-300 font-semibold">{t.hero.timeZone}</span>

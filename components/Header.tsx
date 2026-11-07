@@ -111,21 +111,27 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
             href={blogHref}
             className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
               isBlogActive
-                ? "bg-emerald-800 text-white shadow-xs"
-                : "text-gray-700 hover:text-emerald-900 hover:bg-emerald-50/60"
+                ? "bg-[#062413] text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-950 hover:bg-emerald-50/60"
             }`}
           >
             {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
+          <a
+            href="#faq"
+            className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-gray-700 hover:text-emerald-950 hover:bg-emerald-50/60 transition-all"
+          >
+            {locale === "ar" ? "الأسئلة الشائعة" : locale === "bn" ? "জিজ্ঞাসা" : "FAQ"}
+          </a>
         </nav>
 
-        {/* Right Section: Language Dropdown & Share Button */}
+        {/* Right Section: Language Dropdown & Submit Key Button */}
         <div className="hidden sm:flex items-center gap-3">
           {/* International 21-Language Selector Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/50 text-gray-800 text-xs font-bold transition-all focus:outline-none shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 hover:border-emerald-400 hover:bg-emerald-50/50 text-gray-800 text-xs font-bold transition-all focus:outline-hidden shadow-2xs cursor-pointer"
               aria-label="Select website language"
             >
               <Globe className="w-3.5 h-3.5 text-emerald-700" />
@@ -144,7 +150,7 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
                     <button
                       key={l.code}
                       onClick={() => handleSelectLanguage(l.code as Locale)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors text-left ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-colors text-left cursor-pointer ${
                         isCurrent
                           ? "bg-emerald-50 text-emerald-950 font-bold"
                           : "text-gray-700 hover:bg-gray-50 hover:text-emerald-800"
@@ -165,13 +171,13 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
             )}
           </div>
 
-          {/* Share a Code Action Button */}
+          {/* Submit Nusuk Key Action Pill Button */}
           <button
             onClick={onOpenShareModal}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-white px-5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0"
+            className="inline-flex items-center gap-2 bg-[#062413] hover:bg-[#0a381e] text-white px-5 py-2.5 rounded-full text-xs sm:text-sm font-black transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer border border-emerald-500/30"
           >
-            <Send className="w-3.5 h-3.5 -rotate-45" />
-            <span>{t.nav.shareCode}</span>
+            <span className="text-emerald-400 text-base font-bold leading-none">+</span>
+            <span>{locale === "ar" ? "إضافة مفتاح نسك" : locale === "bn" ? "নুসুক কি যোগ করুন" : "Submit Nusuk Key"}</span>
           </button>
         </div>
 

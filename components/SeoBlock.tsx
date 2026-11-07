@@ -67,7 +67,7 @@ export function SeoBlock({ locale: propLocale }: { locale?: Locale }) {
       : "Frequently Asked Questions (FAQ)";
 
   return (
-    <section className="rounded-3xl bg-white border border-gray-200/90 p-6 sm:p-8 mb-12 shadow-xs">
+    <section id="faq" className="rounded-3xl bg-white border border-gray-200/90 p-6 sm:p-8 mb-12 shadow-xs scroll-mt-20">
       <div className="max-w-3xl">
         <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mb-3">
           {sectionTitle}

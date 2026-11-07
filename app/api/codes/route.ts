@@ -7,13 +7,17 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get("limit") || "20", 10);
+    const limit = parseInt(searchParams.get("limit") || "30", 10);
+    const offset = parseInt(searchParams.get("offset") || "0", 10);
+    const country = searchParams.get("country") || undefined;
     const excludeParam = searchParams.get("exclude");
     const exclude = excludeParam ? excludeParam.split(",").filter(Boolean) : [];
     const deviceHash = getDeviceHash(req);
 
     const codes = await getCodes({
       limit: Math.min(Math.max(limit, 1), 50),
+      offset: Math.max(0, offset),
+      country: country && country !== "ALL" ? country : undefined,
       exclude,
       deviceHash,
     });
