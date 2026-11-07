@@ -1,16 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Loader2, Sparkles, BookOpen } from "lucide-react";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { useLanguage } from "./LanguageProvider";
 import { getLocalizedBlogPost } from "@/lib/blog-i18n";
+
+const BATCH_SIZE = 20;
 
 export function BlogListContent() {
   const { locale, t } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   const p = (slug: string) => {
     if (locale === "ar") {
@@ -39,6 +44,37 @@ export function BlogListContent() {
       return matchesCategory && matchesSearch;
     });
   }, [localizedPosts, selectedCategory, search]);
+
+  // Reset visibleCount back to 20 when filters or search change
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [search, selectedCategory]);
+
+  // Infinite Scroll Observer: triggers loading 20 more blogs when scrolling near bottom
+  useEffect(() => {
+    const target = observerTarget.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < filteredPosts.length) {
+          setIsLoadingMore(true);
+          setTimeout(() => {
+            setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filteredPosts.length));
+            setIsLoadingMore(false);
+          }, 300); // smooth subtle transition
+        }
+      },
+      { threshold: 0.1, rootMargin: "250px" }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [visibleCount, filteredPosts.length]);
+
+  const currentDisplayPosts = useMemo(() => {
+    return filteredPosts.slice(0, visibleCount);
+  }, [filteredPosts, visibleCount]);
 
   const pageTitle =
     locale === "ar"
@@ -96,8 +132,9 @@ export function BlogListContent() {
     <div className="w-full">
       {/* Title & Introduction */}
       <div className="mb-8 text-center sm:text-left">
-        <div className="inline-block px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
-          {badgeText}
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3 shadow-xs">
+          <BookOpen className="w-3.5 h-3.5 text-emerald-700" />
+          <span>{badgeText}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-gray-900 mb-3">
           {pageTitle}
@@ -126,7 +163,7 @@ export function BlogListContent() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 selectedCategory === cat
                   ? "bg-emerald-800 text-white shadow-xs"
                   : "bg-white text-gray-700 hover:bg-emerald-50 border border-gray-200"
@@ -138,9 +175,24 @@ export function BlogListContent() {
         </div>
       </div>
 
+      {/* Counter notice */}
+      <div className="text-xs font-semibold text-gray-500 mb-4 flex items-center justify-between">
+        <span>
+          Showing {currentDisplayPosts.length} of {filteredPosts.length} guides (20 per scroll)
+        </span>
+        {search && (
+          <button
+            onClick={() => setSearch("")}
+            className="text-emerald-700 hover:underline font-bold"
+          >
+            Clear filter
+          </button>
+        )}
+      </div>
+
       {/* Blog Post Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredPosts.map((post) => (
+        {currentDisplayPosts.map((post) => (
           <article
             key={post.slug}
             className="flex flex-col justify-between bg-white rounded-3xl p-6 border border-gray-200/90 shadow-xs hover:shadow-lg hover:border-emerald-300 transition-all duration-200"
@@ -174,6 +226,29 @@ export function BlogListContent() {
           </article>
         ))}
       </div>
+
+      {/* Infinite Scroll Trigger & Loader */}
+      {visibleCount < filteredPosts.length && (
+        <div ref={observerTarget} className="py-12 flex flex-col items-center justify-center gap-3">
+          <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold shadow-xs">
+            <Loader2 className="w-4 h-4 text-emerald-700 animate-spin" />
+            <span>Loading 20 more articles...</span>
+          </div>
+          <button
+            onClick={() => setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, filteredPosts.length))}
+            className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+          >
+            Or tap to load manually
+          </button>
+        </div>
+      )}
+
+      {/* All posts loaded indicator */}
+      {visibleCount >= filteredPosts.length && filteredPosts.length > 0 && (
+        <div className="mt-12 py-8 text-center border-t border-gray-100 text-xs text-gray-400 font-medium">
+          You have viewed all {filteredPosts.length} guides & articles
+        </div>
+      )}
     </div>
   );
 }
