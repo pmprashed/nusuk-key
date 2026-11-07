@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, Send, CheckCircle2, AlertCircle, Plus } from "lucide-react";
+import { X, Send, CheckCircle2, AlertCircle, Plus, ChevronDown } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
 import { CodeItem } from "@/lib/types";
 import { saveMySubmission } from "@/lib/storage";
 import { INITIAL_CODES_DATA } from "@/lib/initial-codes";
+import { COUNTRIES_LIST, CountryInfo } from "@/lib/countries";
 import { WhatsAppIcon } from "./UserCodeBanner";
 
 interface ShareModalProps {
@@ -21,7 +22,8 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
   const locale = propLocale || contextLocale;
 
   const [text, setText] = useState("");
-  const [name, setName] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<CountryInfo>(COUNTRIES_LIST[1]); // Default BD
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successCode, setSuccessCode] = useState<CodeItem | null>(null);
@@ -51,7 +53,7 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           text,
-          name: name.trim() || undefined,
+          country: selectedCountry.code,
         }),
       });
 
@@ -73,7 +75,7 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
         setSuccessCode(data.code);
         onCodeAdded(data.code);
       }
-    } catch (err) {
+    } catch {
       setError(t.shareModal.errorGeneric);
     } finally {
       setLoading(false);
@@ -82,7 +84,7 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
 
   const handleReset = () => {
     setText("");
-    setName("");
+    setSelectedCountry(COUNTRIES_LIST[1]);
     setError(null);
     setSuccessCode(null);
   };
@@ -101,7 +103,7 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors"
+          className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
           aria-label="Close"
         >
           <X className="w-5 h-5" />
@@ -139,7 +141,7 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
 
               <button
                 onClick={handleReset}
-                className="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-3 rounded-xl font-bold text-sm transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 px-5 py-3 rounded-xl font-bold text-sm transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>{t.userCodeBanner.addAnother}</span>
@@ -149,10 +151,14 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
         ) : (
           <div>
             <h3 className="text-xl font-black text-gray-900 mb-1">
-              {t.shareModal.title}
+              {locale === "ar" ? "أضف مفتاح نسك" : locale === "bn" ? "নুসুক কি যোগ করুন" : "Submit Nusuk Key"}
             </h3>
             <p className="text-xs sm:text-sm text-gray-500 mb-5">
-              {t.shareModal.subtitle}
+              {locale === "ar"
+                ? "اكسب +1 مفتاح إضافي لك وللمعتمر الذي يستخدمه"
+                : locale === "bn"
+                ? "আপনার এবং ব্যবহারকারীর উভয়ের জন্য +১ অতিরিক্ত কি অর্জন করুন"
+                : "Earn +1 key for you & the pilgrim who uses it"}
             </p>
 
             {error && (
@@ -165,40 +171,71 @@ export function ShareModal({ locale: propLocale, isOpen, onClose, onCodeAdded }:
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                  {t.shareModal.labelCode}
+                  {locale === "ar" ? "رمز أو رابط نسك" : locale === "bn" ? "নুসুক কি বা লিঙ্ক" : "Nusuk Key or Link"}
                 </label>
                 <textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder={t.shareModal.placeholderCode}
+                  placeholder="NG-XXXXXXXX or paste invite link"
                   required
-                  rows={3}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm font-mono placeholder:font-sans transition-all outline-none"
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm font-mono placeholder:font-sans transition-all outline-hidden text-gray-900"
                 />
               </div>
 
-              <div>
+              {/* Nationality Selector */}
+              <div className="relative">
                 <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                  {t.shareModal.labelName}
+                  {locale === "ar" ? "الجنسية" : locale === "bn" ? "জাতীয়তা" : "Nationality (Optional)"}
                 </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={t.shareModal.placeholderName}
-                  maxLength={50}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm transition-all outline-none"
-                />
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-gray-300 bg-white hover:border-emerald-500 text-sm font-semibold text-gray-800 transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{selectedCountry.flag}</span>
+                    <span className="font-bold text-gray-900">{selectedCountry.name}</span>
+                    <span className="text-xs text-gray-400 font-mono">({selectedCountry.code})</span>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute top-full left-0 right-0 mt-1 z-30 bg-white rounded-xl shadow-xl border border-gray-200 p-2 max-h-48 overflow-y-auto">
+                    {COUNTRIES_LIST.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCountry(c);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                          selectedCountry.code === c.code
+                            ? "bg-emerald-50 text-emerald-950 font-bold"
+                            : "hover:bg-gray-50 text-gray-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{c.flag}</span>
+                          <span>{c.name}</span>
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-mono">{c.code}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="pt-2">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white py-3.5 px-6 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white py-3.5 px-6 rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Send className="w-4 h-4 -rotate-45" />
-                  <span>{loading ? t.common.loading : t.shareModal.submitBtn}</span>
+                  <span>{loading ? (t.common.loading || "Submitting...") : (t.shareModal.submitBtn || "Submit Key")}</span>
                 </button>
               </div>
             </form>

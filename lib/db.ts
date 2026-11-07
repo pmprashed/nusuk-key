@@ -47,6 +47,24 @@ const memoryStore: MemoryStore = {
   submissions: [],
 };
 
+export function sanitizeCodeItem(item: any): CodeItem {
+  const rawCountry = item.country || item.display_name;
+  const isCountryCode = rawCountry && rawCountry.trim().length <= 5 && /^[A-Z]{2,6}$/i.test(rawCountry.trim());
+  const resolvedCountry = isCountryCode ? rawCountry.trim().toUpperCase() : "GLOBAL";
+
+  return {
+    id: item.id,
+    code: item.code,
+    display_name: null, // Always delete/clear owner personal names!
+    country: resolvedCountry,
+    created_at: item.created_at,
+    use_count: item.use_count ?? 0,
+    report_count: item.report_count ?? 0,
+    status: item.status ?? "active",
+    last_served_at: item.last_served_at ?? null,
+  };
+}
+
 export async function getCodes(params: {
   limit?: number;
   exclude?: string[];
@@ -122,7 +140,7 @@ export async function getCodes(params: {
             .in("id", idsToUpdate);
         }
 
-        return selected;
+        return selected.map(sanitizeCodeItem);
       }
 
       // If excluded filter exhausted or returned 0, query without exclusion to avoid empty states
@@ -134,7 +152,7 @@ export async function getCodes(params: {
         .limit(limit);
 
       if (fallbackData && fallbackData.length > 0) {
-        return fallbackData;
+        return fallbackData.map(sanitizeCodeItem);
       }
     } catch (e) {
       console.error("Error fetching codes from Supabase:", e);
@@ -169,7 +187,7 @@ export async function getCodes(params: {
     c.last_served_at = now;
   });
 
-  return selected.length > 0 ? selected : INITIAL_FALLBACK_CODES.slice(0, limit);
+  return (selected.length > 0 ? selected : INITIAL_FALLBACK_CODES.slice(0, limit)).map(sanitizeCodeItem);
 }
 
 export async function getNextCode(deviceHash?: string, exclude?: string[]): Promise<CodeItem | null> {
@@ -189,7 +207,7 @@ export async function getNextCode(deviceHash?: string, exclude?: string[]): Prom
           .maybeSingle();
 
         if (data) {
-          return data;
+          return sanitizeCodeItem(data);
         }
       } catch {
         // fallback to memory
@@ -200,19 +218,19 @@ export async function getNextCode(deviceHash?: string, exclude?: string[]): Prom
       (c) => c.code.toLowerCase() === FIRST_CODE.toLowerCase() && c.status === "active"
     );
     if (firstFromMemory) {
-      return firstFromMemory;
+      return sanitizeCodeItem(firstFromMemory);
     }
   }
 
   const codes = await getCodes({ limit: 1, deviceHash, exclude });
   if (codes && codes.length > 0) {
-    return codes[0];
+    return sanitizeCodeItem(codes[0]);
   }
 
   // Absolute fallback: pick any code from INITIAL_FALLBACK_CODES
   if (INITIAL_FALLBACK_CODES.length > 0) {
     const randomIdx = Math.floor(Math.random() * INITIAL_FALLBACK_CODES.length);
-    return INITIAL_FALLBACK_CODES[randomIdx];
+    return sanitizeCodeItem(INITIAL_FALLBACK_CODES[randomIdx]);
   }
 
   return null;
@@ -221,6 +239,7 @@ export async function getNextCode(deviceHash?: string, exclude?: string[]): Prom
 export async function addCode(params: {
   text: string;
   name?: string;
+  country?: string;
   submitterHash: string;
 }): Promise<{ code?: CodeItem; error?: string }> {
   // Extract first match of NG-[A-Za-z0-9]{8}
@@ -229,6 +248,7 @@ export async function addCode(params: {
     return { error: "invalid_format" };
   }
   const extractedCode = match[0].toUpperCase();
+  const targetCountry = params.country ? params.country.trim().toUpperCase().slice(0, 10) : "GLOBAL";
   const supabase = getSupabaseClient();
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
@@ -265,12 +285,12 @@ export async function addCode(params: {
         return { error: "duplicate" };
       }
 
-      // Insert new code
+      // Insert new code with Country code stored (personal owner name completely removed)
       const { data: newCode, error: insertErr } = await supabase
         .from("codes")
         .insert({
           code: extractedCode,
-          display_name: params.name ? params.name.trim().slice(0, 50) : null,
+          display_name: targetCountry,
           status: "active",
           use_count: 0,
           report_count: 0,
@@ -291,7 +311,7 @@ export async function addCode(params: {
         submitter_hash: params.submitterHash,
       });
 
-      return { code: newCode };
+      return { code: sanitizeCodeItem(newCode) };
     } catch (e: any) {
       if (e?.code === "23505" || e?.message?.includes("unique")) {
         return { error: "duplicate" };
@@ -318,13 +338,23 @@ export async function addCode(params: {
   const newCode: CodeItem = {
     id: `mem-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     code: extractedCode,
-    display_name: params.name ? params.name.trim().slice(0, 50) : null,
+    display_name: null,
+    country: targetCountry,
     created_at: new Date().toISOString(),
     use_count: 0,
     report_count: 0,
     status: "active",
     last_served_at: null,
   };
+
+  memoryStore.codes.unshift(newCode);
+  memoryStore.submissions.push({
+    id: `sub-${Date.now()}`,
+    submitter_hash: params.submitterHash,
+    created_at: new Date().toISOString(),
+  });
+
+  return { code: sanitizeCodeItem(newCode) };
 
   memoryStore.codes.unshift(newCode);
   memoryStore.submissions.push({

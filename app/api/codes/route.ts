@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { text, name } = body;
+    const { text, name, country } = body;
 
     if (!text || typeof text !== "string") {
       return NextResponse.json(
@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
     const result = await addCode({
       text,
       name: typeof name === "string" ? name : undefined,
+      country: typeof country === "string" ? country : undefined,
       submitterHash,
     });
 

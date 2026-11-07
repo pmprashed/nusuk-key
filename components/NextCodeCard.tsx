@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Copy, ExternalLink, Sparkles, Check, RefreshCw } from "lucide-react";
-import { Locale, getDictionary } from "@/lib/i18n";
+import { Copy, ExternalLink, Sparkles, Check, RefreshCw, Flag, Share2 } from "lucide-react";
+import { Locale } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
-import { CodeItem } from "@/lib/types";
+import { CodeItem, ReportType } from "@/lib/types";
 import { copyToClipboard, getNusukDeepLink } from "@/lib/clipboard";
 import { saveCopiedCode, getAllExcludedIds, isCodeExcluded } from "@/lib/storage";
 import { INITIAL_FALLBACK_CODES } from "@/lib/initial-codes";
+import { getCountryDetails } from "@/lib/countries";
 import { showToast } from "./Toast";
 
 interface NextCodeCardProps {
@@ -22,38 +23,13 @@ function formatTimeAgo(dateString: string, locale: Locale): string {
     const diff = Math.max(0, Date.now() - past);
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
 
-    if (locale === "ar") {
-      if (minutes < 2) return "دقيقة واحدة";
-      if (minutes < 60) return `${minutes} دقيقة`;
-      if (hours === 1) return "ساعة واحدة";
-      if (hours < 24) return `${hours} ساعة`;
-      return `${days} يوم`;
-    }
-
-    if (locale === "bn") {
-      if (minutes < 2) return "১ মিনিট";
-      if (minutes < 60) return `${minutes} মিনিট`;
-      if (hours === 1) return "১ ঘণ্টা";
-      if (hours < 24) return `${hours} ঘণ্টা`;
-      return `${days} দিন`;
-    }
-
-    if (locale === "ur") {
-      if (minutes < 2) return "1 منٹ";
-      if (minutes < 60) return `${minutes} منٹ`;
-      if (hours === 1) return "1 گھنٹہ";
-      if (hours < 24) return `${hours} گھنٹے`;
-      return `${days} دن`;
-    }
-
-    if (minutes < 1) return "just now";
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    return `${days}d ago`;
+    if (minutes < 1) return locale === "ar" ? "الآن" : locale === "bn" ? "মাত্র এখন" : "just now";
+    if (minutes < 60) return `${minutes}${locale === "ar" ? " د" : locale === "bn" ? " মি" : "m ago"}`;
+    if (hours < 24) return `${hours}${locale === "ar" ? " س" : locale === "bn" ? " ঘণ্টা" : "h ago"}`;
+    return locale === "ar" ? "اليوم" : locale === "bn" ? "আজ" : "today";
   } catch {
-    return locale === "ar" ? "قريباً" : locale === "bn" ? "সম্প্রতি" : "recently";
+    return "just now";
   }
 }
 
@@ -65,14 +41,13 @@ export function NextCodeCard({
   const { locale: contextLocale, t } = useLanguage();
   const locale = propLocale || contextLocale;
 
-  // FIRST_VISIT_CODE — served once per device
   const FIRST_VISIT_CODE = "NG-CXEVbXwR";
 
-  // Provide guaranteed initial code so card is never empty
   const defaultInitialCode: CodeItem = initialCode || {
     id: "first-visit-cxevbxwr",
     code: FIRST_VISIT_CODE,
-    display_name: "Rashed",
+    display_name: null,
+    country: "GLOBAL",
     status: "active",
     use_count: 240,
     report_count: 0,
@@ -95,15 +70,15 @@ export function NextCodeCard({
 
   const [copied, setCopied] = useState(false);
   const [rotating, setRotating] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const isFetchingRef = useRef(false);
 
   useEffect(() => {
-    // If user hasn't seen FIRST_VISIT_CODE, keep it; otherwise fetch fresh
     if (!isCodeExcluded(undefined, FIRST_VISIT_CODE)) {
       setCode(defaultInitialCode);
       return;
     }
-
     if (initialCode && !isCodeExcluded(initialCode.id, initialCode.code)) {
       setCode(initialCode);
     } else {
@@ -112,7 +87,6 @@ export function NextCodeCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialCode]);
 
-  // Listen for codes copied anywhere else on page
   useEffect(() => {
     const handleGlobalCopy = (e: any) => {
       const detail = e.detail;
@@ -131,20 +105,11 @@ export function NextCodeCard({
 
     try {
       const excluded = getAllExcludedIds();
-      if (additionalExcludeId && !excluded.includes(additionalExcludeId)) {
-        excluded.push(additionalExcludeId);
-      }
-      if (additionalExcludeCode && !excluded.includes(additionalExcludeCode)) {
-        excluded.push(additionalExcludeCode);
-      }
-      if (code && !excluded.includes(code.id)) {
-        excluded.push(code.id);
-      }
-      if (code && !excluded.includes(code.code)) {
-        excluded.push(code.code);
-      }
+      if (additionalExcludeId && !excluded.includes(additionalExcludeId)) excluded.push(additionalExcludeId);
+      if (additionalExcludeCode && !excluded.includes(additionalExcludeCode)) excluded.push(additionalExcludeCode);
+      if (code && !excluded.includes(code.id)) excluded.push(code.id);
+      if (code && !excluded.includes(code.code)) excluded.push(code.code);
 
-      // Query server for the next fair code
       const query = new URLSearchParams(
         excluded.length > 0 ? { exclude: excluded.slice(0, 80).join(",") } : {}
       );
@@ -158,7 +123,7 @@ export function NextCodeCard({
         }
       }
 
-      // Fallback 1: Query API without exclusion
+      // Fallback 1: Query API unconstrained
       const resUnconstrained = await fetch("/api/codes/next", { cache: "no-store" });
       if (resUnconstrained.ok) {
         const data = await resUnconstrained.json();
@@ -168,7 +133,7 @@ export function NextCodeCard({
         }
       }
 
-      // Fallback 2: Local un-excluded code from memory bundle
+      // Fallback 2: Local memory bundle
       const fallbackUnused = INITIAL_FALLBACK_CODES.find(
         (c) => c.code !== code?.code && !isCodeExcluded(c.id, c.code)
       );
@@ -177,15 +142,12 @@ export function NextCodeCard({
         return;
       }
 
-      // Fallback 3: Random pick from bundle so card NEVER goes empty
       const randomIdx = Math.floor(Math.random() * INITIAL_FALLBACK_CODES.length);
-      const randomPick = INITIAL_FALLBACK_CODES[randomIdx];
-      if (randomPick) {
-        setCode(randomPick);
+      if (INITIAL_FALLBACK_CODES[randomIdx]) {
+        setCode(INITIAL_FALLBACK_CODES[randomIdx]);
       }
     } catch (err) {
       console.error("fetchNext error:", err);
-      // Ensure card always shows a code
       const randomIdx = Math.floor(Math.random() * INITIAL_FALLBACK_CODES.length);
       if (INITIAL_FALLBACK_CODES[randomIdx]) {
         setCode(INITIAL_FALLBACK_CODES[randomIdx]);
@@ -206,21 +168,16 @@ export function NextCodeCard({
       setCopied(true);
       showToast(t.common.copiedToast || "Referral code copied to clipboard", "success");
 
-      // Save to lifetime storage and emit event
       saveCopiedCode(currentCode.id, currentCode.code);
 
-      // Track in backend
       fetch(`/api/codes/${currentCode.id}/copy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "copy" }),
       }).catch(console.error);
 
-      if (onCodeCopied) {
-        onCodeCopied(currentCode);
-      }
+      if (onCodeCopied) onCodeCopied(currentCode);
 
-      // Rotate immediately to the next fresh code without closing or empty state!
       setTimeout(() => {
         setCopied(false);
         fetchNext(currentCode.id, currentCode.code);
@@ -242,120 +199,232 @@ export function NextCodeCard({
       body: JSON.stringify({ type: "open" }),
     }).catch(console.error);
 
-    if (onCodeCopied) {
-      onCodeCopied(currentCode);
-    }
+    if (onCodeCopied) onCodeCopied(currentCode);
 
-    // Instantly rotate to next code
     fetchNext(currentCode.id, currentCode.code);
-
     window.open(deepLink, "_blank");
   };
 
-  const handleGetFreshCode = () => {
+  const handleSwapCode = () => {
     fetchNext(code.id, code.code);
   };
 
-  const deepLink = getNusukDeepLink(code.code);
-  const timeAgoStr = formatTimeAgo(code.created_at, locale);
+  const handleReport = async (type: ReportType) => {
+    if (!code) return;
+    setReporting(true);
+    try {
+      await fetch(`/api/codes/${code.id}/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type }),
+      });
+      showToast("Thank you for reporting. Here is a fresh replacement key.", "info");
+      setShowReportModal(false);
+      fetchNext(code.id, code.code);
+    } catch {
+      showToast("Report submitted.", "info");
+      setShowReportModal(false);
+      fetchNext(code.id, code.code);
+    } finally {
+      setReporting(false);
+    }
+  };
 
-  // Multilingual button labels
-  const getFreshCodeText =
-    (t.nextCode as any)?.getFreshCode ||
-    (locale === "ar"
-      ? "رمز جديد"
-      : locale === "bn"
-      ? "নতুন কোড নিন"
-      : locale === "ur"
-      ? "نیا فریش کوڈ حاصل کریں"
-      : locale === "id"
-      ? "Dapatkan Kode Baru"
-      : locale === "tr"
-      ? "Yeni Kod Al"
-      : "Get Fresh Code");
+  const countryInfo = getCountryDetails(code.country);
+  const timeAgoStr = formatTimeAgo(code.created_at, locale);
+  const deepLink = getNusukDeepLink(code.code);
+
+  // Format code with clean spaces like "NG - L P L O W S E B"
+  const formattedCodeDisplay = code.code.startsWith("NG-")
+    ? `NG - ${code.code.slice(3).split("").join(" ")}`
+    : code.code.split("").join(" ");
+
+  const shareText = encodeURIComponent(
+    `Get +1 Free Key for the Nusuk Umrah Competition using my code: ${code.code} ! Claim here: https://nusuk-keys.vercel.app`
+  );
+  const siteShareUrl = encodeURIComponent("https://nusuk-keys.vercel.app");
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#062413] via-[#0b381d] to-[#124d27] border border-emerald-500/30 text-white p-6 sm:p-8 shadow-xl mb-6 transition-all duration-300">
-      {/* Decorative Subtle Geometric Mosque Arches & Rings */}
-      <div className="absolute top-0 right-0 p-4 opacity-15 pointer-events-none">
-        <svg width="150" height="150" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-          <circle cx="50" cy="50" r="46" strokeWidth="1" strokeDasharray="3 3" />
-          <polygon points="50,4 96,50 50,96 4,50" strokeWidth="1" />
-          <polygon points="50,14 86,50 50,86 14,50" strokeWidth="0.8" />
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#062413] via-[#09351a] to-[#0f4422] border-2 border-emerald-600/40 text-white p-5 sm:p-7 shadow-2xl transition-all duration-300">
+      {/* Decorative Subtle Geometric Mosque Background */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="card-geom-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="#fff" strokeWidth="0.8" />
+              <circle cx="20" cy="20" r="8" fill="none" stroke="#fff" strokeWidth="0.6" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#card-geom-pattern)" />
         </svg>
       </div>
 
-      <div className="relative z-10 flex flex-col items-center sm:items-start text-center sm:text-left">
-        {/* Badge: Your Fresh Code */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-800/80 border border-emerald-400/30 text-xs font-semibold text-emerald-200 mb-4 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-300 animate-pulse" />
-          <span>{t.nextCode.badge}</span>
+      <div className="relative z-10 flex flex-col justify-between h-full">
+        {/* Top Header Row: Badge on Left, Swap Code & Report on Right */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-xs font-bold text-emerald-200 shadow-xs">
+            <span className="text-amber-300">💳</span>
+            <span>{t.nextCode.badge || "Next code for you"}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSwapCode}
+              disabled={rotating}
+              title="Get another fresh key"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-emerald-100 text-xs font-semibold backdrop-blur-sm transition-all border border-white/15 cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-emerald-300 ${rotating ? "animate-spin" : ""}`} />
+              <span>{locale === "ar" ? "تبديل الكود" : locale === "bn" ? "কোড পরিবর্তন" : "Swap Code"}</span>
+            </button>
+
+            <button
+              onClick={() => setShowReportModal(true)}
+              title="Report if invalid"
+              className="p-1.5 rounded-full bg-white/10 hover:bg-red-500/30 text-emerald-200 hover:text-red-200 transition-colors border border-white/15 cursor-pointer"
+            >
+              <Flag className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* The Code Display Container */}
-        <div className="w-full bg-black/25 border border-white/10 rounded-2xl p-4 sm:p-5 mb-3 backdrop-blur-sm shadow-inner flex flex-col sm:flex-row items-center justify-between gap-3">
+        {/* Big Monospace Code Display */}
+        <div className="my-2 py-3 px-2 text-center sm:text-left">
           <div
-            className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-widest font-mono text-white select-all transition-all duration-300 ${
-              rotating ? "opacity-30 scale-95 blur-xs" : "opacity-100 scale-100 blur-none"
+            className={`font-mono font-black tracking-[0.18em] sm:tracking-[0.28em] text-2xl sm:text-4xl lg:text-5xl text-white select-all drop-shadow-md transition-all duration-300 ${
+              rotating ? "opacity-25 scale-95 blur-xs" : "opacity-100 scale-100 blur-none"
             }`}
           >
-            {code.code}
-          </div>
-
-          <div className="text-xs sm:text-sm text-emerald-200/90 font-medium flex items-center gap-2 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>{code.use_count} {locale === "ar" ? "استخدام" : locale === "bn" ? "বার ব্যবহৃত" : "uses"}</span>
+            {formattedCodeDisplay}
           </div>
         </div>
 
-        {/* Meta subtitle */}
-        <p className="text-xs sm:text-sm text-emerald-200/80 mb-6 font-medium">
-          {t.nextCode.sharedAgo.replace("{{time}}", timeAgoStr)} ·{" "}
-          {t.nextCode.usedCount.replace("{{count}}", code.use_count.toString())}
-        </p>
+        {/* Status / Nationality Row: Just now badge | Country flag badge | Ready to use */}
+        <div className="flex items-center gap-2 flex-wrap mb-6 text-xs font-medium">
+          <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/30 text-emerald-200">
+            <span>🕒</span>
+            <span>{timeAgoStr}</span>
+          </div>
 
-        {/* Buttons Row */}
-        <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* 1. Get Fresh Code (Primary emerald button) */}
-          <button
-            onClick={handleGetFreshCode}
-            disabled={rotating}
-            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:from-emerald-700 active:to-teal-700 text-white px-5 py-3.5 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] border border-emerald-400/30"
-          >
-            <RefreshCw className={`w-4 h-4 ${rotating ? "animate-spin" : ""}`} />
-            <span>{getFreshCodeText}</span>
-          </button>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/70 border border-emerald-500/30 text-emerald-200 font-bold">
+            <span className="text-sm">{countryInfo.flag}</span>
+            <span>{countryInfo.code === "GLOBAL" ? "Global" : countryInfo.code}</span>
+          </div>
 
-          {/* 2. Copy Code (Crisp white card button) */}
+          <div className="inline-flex items-center gap-1.5 text-emerald-200/90 ml-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>{locale === "ar" ? "جاهز للاستخدام" : locale === "bn" ? "ব্যবহারের জন্য প্রস্তুত" : "Ready to use"}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons: Big White 'Open in Nusuk' pill + Dark 'Copy' button */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 mb-5">
+          {deepLink ? (
+            <button
+              onClick={handleOpenNusuk}
+              className="sm:col-span-8 inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 active:bg-emerald-100 text-[#062413] px-6 py-3.5 rounded-full font-black text-base shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+            >
+              <ExternalLink className="w-5 h-5 text-emerald-800" />
+              <span>{t.nextCode.openBtn || "Open in Nusuk"}</span>
+            </button>
+          ) : null}
+
           <button
             onClick={handleCopy}
-            className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-emerald-50 text-emerald-950 px-5 py-3.5 rounded-xl font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] border-2 border-emerald-300"
+            className={`${
+              deepLink ? "sm:col-span-4" : "sm:col-span-12"
+            } inline-flex items-center justify-center gap-2 bg-emerald-950/90 hover:bg-emerald-900 active:bg-emerald-950 text-white px-5 py-3.5 rounded-full font-bold text-base border border-emerald-400/40 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer`}
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span className="text-emerald-700 font-extrabold">{t.common.copied}</span>
+                <Check className="w-5 h-5 text-emerald-400" />
+                <span className="text-emerald-300 font-black">{t.common.copied || "Copied!"}</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-emerald-800" />
-                <span>{t.nextCode.copyBtn}</span>
+                <Copy className="w-5 h-5 text-emerald-300" />
+                <span>{t.nextCode.copyBtn || "Copy"}</span>
               </>
             )}
           </button>
+        </div>
 
-          {/* 3. Open in Nusuk (Direct deep link action) */}
-          {deepLink && (
-            <button
-              onClick={handleOpenNusuk}
-              className="w-full inline-flex items-center justify-center gap-2 bg-emerald-900/80 hover:bg-emerald-800 text-emerald-100 px-5 py-3.5 rounded-xl font-bold text-sm sm:text-base shadow-sm hover:shadow-md transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] border border-emerald-500/40"
+        {/* Bottom Social Share Bar */}
+        <div className="pt-3 border-t border-emerald-600/30 flex items-center justify-between gap-2 flex-wrap text-xs text-emerald-200/80">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Share2 className="w-3.5 h-3.5 text-emerald-300" />
+            <span>{locale === "ar" ? "شارك هذا الكود:" : locale === "bn" ? "কোডটি শেয়ার করুন:" : "Share this code:"}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${siteShareUrl}&quote=${shareText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1877F2]/20 hover:bg-[#1877F2]/40 text-blue-200 font-semibold border border-[#1877F2]/40 transition-colors"
             >
-              <ExternalLink className="w-4 h-4 text-emerald-300" />
-              <span>{t.nextCode.openBtn}</span>
-            </button>
-          )}
+              <span>Facebook</span>
+            </a>
+
+            <a
+              href={`https://api.whatsapp.com/send?text=${shareText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#25D366]/20 hover:bg-[#25D366]/40 text-emerald-200 font-semibold border border-[#25D366]/40 transition-colors"
+            >
+              <span>WhatsApp</span>
+            </a>
+
+            <a
+              href={`https://t.me/share/url?url=${siteShareUrl}&text=${shareText}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#24A1DE]/20 hover:bg-[#24A1DE]/40 text-sky-200 font-semibold border border-[#24A1DE]/40 transition-colors"
+            >
+              <span>Telegram</span>
+            </a>
+          </div>
         </div>
       </div>
+
+      {/* Report Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full text-gray-900 shadow-2xl border border-gray-100">
+            <h3 className="text-base font-black text-gray-900 mb-2 flex items-center gap-2">
+              <Flag className="w-4 h-4 text-amber-600" />
+              <span>Report Code {code.code}</span>
+            </h3>
+            <p className="text-xs text-gray-600 mb-4">
+              If this code has reached its maximum daily uses or is not working inside the Nusuk app, let us know so we can replace it for everyone.
+            </p>
+
+            <div className="space-y-2 mb-4">
+              <button
+                onClick={() => handleReport("already_used")}
+                disabled={reporting}
+                className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-xs font-semibold text-gray-800 transition-colors"
+              >
+                ⚠️ Already used / max limit reached
+              </button>
+              <button
+                onClick={() => handleReport("not_correct")}
+                disabled={reporting}
+                className="w-full text-left px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-emerald-50 hover:border-emerald-300 text-xs font-semibold text-gray-800 transition-colors"
+              >
+                ❌ Invalid / incorrect code
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowReportModal(false)}
+              className="w-full py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

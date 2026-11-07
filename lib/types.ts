@@ -4,6 +4,7 @@ export interface CodeItem {
   id: string;
   code: string;
   display_name: string | null;
+  country?: string | null;
   created_at: string;
   use_count: number;
   report_count: number;
