@@ -297,7 +297,7 @@ export function NextCodeCard({
           >
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
               <span className="text-amber-300 text-lg sm:text-xl drop-shadow-sm">🔑</span>
-              <span className="font-mono font-black text-xl sm:text-2xl md:text-3xl text-white tracking-[0.08em] sm:tracking-[0.14em] select-all whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-md">
+              <span className="font-mono font-black text-xl sm:text-2xl md:text-3xl text-white tracking-wide select-all whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-md">
                 {formattedCodeDisplay}
               </span>
             </div>
