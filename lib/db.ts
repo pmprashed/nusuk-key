@@ -71,12 +71,35 @@ export function sanitizeCodeItem(item: any): CodeItem {
     uses = 300 + (Math.abs(hash) % 201);
   }
 
+  // Handle created_at:
+  // For all existing/initial seed codes (added on or before Nov 6, 2026),
+  // deterministically show a random time between 3 and 7 days ago.
+  // Any newly submitted codes by visitors (after cutoff or marked new) keep their real exact created_at!
+  let createdAt = item.created_at;
+  const SEED_CUTOFF_MS = new Date("2026-11-06T12:00:00.000Z").getTime();
+  const rawCreatedAtMs = createdAt ? new Date(createdAt).getTime() : 0;
+
+  if (rawCreatedAtMs <= SEED_CUTOFF_MS) {
+    let hash = 0;
+    const str = String(item.code || item.id || "nusuk-time");
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    // Random days between 3.0 and 7.0 days ago
+    const positiveHash = Math.abs(hash);
+    const daysOffset = 3 + (positiveHash % 400) / 100; // 3.00 to 6.99 days ago
+    const minutesOffset = (positiveHash % 1440);
+    const targetMs = Date.now() - (daysOffset * 24 * 60 + minutesOffset) * 60 * 1000;
+    createdAt = new Date(targetMs).toISOString();
+  }
+
   return {
     id: item.id,
     code: item.code,
     display_name: null, // Always delete/clear owner personal names!
     country: resolvedCountry,
-    created_at: item.created_at,
+    created_at: createdAt,
     use_count: uses,
     report_count: item.report_count ?? 0,
     status: item.status ?? "active",
