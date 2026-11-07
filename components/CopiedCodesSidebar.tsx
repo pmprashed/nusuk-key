@@ -55,8 +55,8 @@ export function CopiedCodesSidebar({ locale: propLocale, refreshTrigger }: Copie
   };
 
   return (
-    <div className="bg-white border border-gray-200/90 rounded-3xl p-5 sm:p-6 shadow-sm mb-8">
-      <div className="flex items-center justify-between gap-2 mb-3">
+    <div className="bg-white border border-gray-200/90 rounded-3xl p-5 sm:p-6 shadow-sm">
+      <div className="flex items-center justify-between gap-2 mb-2">
         <h3 className="text-base font-black text-gray-900 tracking-tight flex items-center gap-2">
           <History className="w-4 h-4 text-emerald-700" />
           <span>{t.codesYouCopy.title}</span>
@@ -73,12 +73,12 @@ export function CopiedCodesSidebar({ locale: propLocale, refreshTrigger }: Copie
         )}
       </div>
 
-      <p className="text-xs text-gray-500 mb-4 font-medium">
+      <p className="text-xs text-gray-500 mb-3.5 font-medium leading-relaxed">
         {t.codesYouCopy.subtitle}
       </p>
 
       {copiedCodes.length === 0 ? (
-        <div className="py-8 text-center text-xs text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+        <div className="py-6 text-center text-xs text-gray-400 border border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
           {locale === "ar"
             ? "لم تقم بنسخ أي رمز بعد"
             : locale === "bn"
@@ -88,15 +88,16 @@ export function CopiedCodesSidebar({ locale: propLocale, refreshTrigger }: Copie
             : "No codes copied yet"}
         </div>
       ) : (
-        <div className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+        /* Compact clean scrollable height matching the left guide height */
+        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
           {copiedCodes.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 p-3 bg-emerald-50/40 border border-emerald-100 rounded-2xl transition-all"
+              className="flex items-center justify-between gap-2 py-2 px-3 bg-emerald-50/40 border border-emerald-100 rounded-xl transition-all"
             >
               <div className="min-w-0 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span className="font-mono font-bold text-sm text-gray-900 tracking-wider truncate">
+                <span className="font-mono font-bold text-xs sm:text-sm text-gray-900 tracking-wider truncate">
                   {item.code}
                 </span>
               </div>
@@ -105,19 +106,19 @@ export function CopiedCodesSidebar({ locale: propLocale, refreshTrigger }: Copie
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => handleReport(item, "not_correct")}
-                    className="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg text-[10px] font-bold"
+                    className="px-2 py-0.5 bg-red-100 hover:bg-red-200 text-red-800 rounded text-[10px] font-bold"
                   >
                     {t.codesYouCopy.reportInvalid}
                   </button>
                   <button
                     onClick={() => handleReport(item, "already_used")}
-                    className="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-[10px] font-bold"
+                    className="px-2 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded text-[10px] font-bold"
                   >
                     {t.codesYouCopy.reportUsed}
                   </button>
                   <button
                     onClick={() => setActiveReportId(null)}
-                    className="px-1.5 py-1 text-gray-400 hover:text-gray-600 text-[10px]"
+                    className="px-1 text-gray-400 hover:text-gray-600 text-[10px]"
                   >
                     ✕
                   </button>

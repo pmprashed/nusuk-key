@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Smartphone, ShieldCheck, Zap, HelpCircle } from "lucide-react";
+import { CheckCircle2, Smartphone, ShieldCheck, Zap, HelpCircle, Gift, Sparkles, Award } from "lucide-react";
 import Link from "next/link";
 import { Locale } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
@@ -39,10 +39,10 @@ export function OpenInNusukGuideCard({ locale: propLocale }: OpenInNusukGuideCar
       ];
 
   return (
-    <div className="rounded-3xl bg-white border border-emerald-100 p-5 sm:p-6 shadow-sm flex flex-col justify-between h-full">
+    <div className="rounded-3xl bg-white border border-emerald-100 p-5 sm:p-6 shadow-sm flex flex-col justify-between space-y-4">
+      {/* 1. Header with Icon & Active Tag */}
       <div>
-        {/* Card Header with Icon & Active Tag */}
-        <div className="flex items-center justify-between gap-2 mb-3.5">
+        <div className="flex items-center justify-between gap-2 mb-3">
           <h3 className="text-sm sm:text-base font-black text-gray-900 flex items-center gap-2">
             <Smartphone className="w-4 h-4 text-emerald-700" />
             <span>
@@ -60,9 +60,9 @@ export function OpenInNusukGuideCard({ locale: propLocale }: OpenInNusukGuideCar
         </div>
 
         {/* 5 Clean Checklist Points */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {points.map((pt, i) => (
-            <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700 leading-relaxed font-medium">
+            <div key={i} className="flex items-start gap-2 text-xs text-gray-700 leading-relaxed font-medium">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>{pt}</span>
             </div>
@@ -70,8 +70,30 @@ export function OpenInNusukGuideCard({ locale: propLocale }: OpenInNusukGuideCar
         </div>
       </div>
 
-      {/* Interactive Bottom Banner: Platform support + Quick FAQ helper */}
-      <div className="mt-5 pt-3.5 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-gray-500 font-medium">
+      {/* 2. Visual Value Banner: Perfect layout fill that eliminates bottom empty space */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+            <Gift className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-black text-emerald-950 flex items-center gap-1">
+              <span>Earn +1 Key Both Ways</span>
+              <Sparkles className="w-3 h-3 text-amber-500" />
+            </div>
+            <div className="text-[11px] text-emerald-800 font-medium">
+              Every code entered gives you and the owner 1 ticket for the 100 free Umrah raffle.
+            </div>
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-emerald-300 text-[10px] font-bold text-emerald-900 shadow-2xs shrink-0">
+          <Award className="w-3 h-3 text-amber-500" />
+          <span>Fair Share</span>
+        </div>
+      </div>
+
+      {/* 3. Interactive Bottom Banner: Platform support + Quick FAQ helper */}
+      <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-[11px] text-gray-500 font-medium">
         <div className="flex items-center gap-1.5 text-gray-600">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>

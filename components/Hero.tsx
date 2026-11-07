@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, TrendingUp, Sparkles, Key, Globe2, ShieldCheck } from "lucide-react";
+import { TrendingUp, Sparkles, Key, CheckCircle2 } from "lucide-react";
 import { Locale } from "@/lib/i18n";
 import { useLanguage } from "./LanguageProvider";
 
@@ -176,84 +176,91 @@ export function Hero({ locale: propLocale }: HeroProps) {
             : "A community-powered platform for sharing and claiming Nusuk referral codes. Enter codes into the Nusuk app to earn bonus keys for the Umrah competition."}
         </p>
 
-        {/* Premium 6-Box Stats Dashboard Grid (Full Width & Balanced) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
-          {/* 1. Total Key */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <Key className="w-4 h-4 text-emerald-600" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800">
+        {/* Custom 5-Box Dashboard Layout:
+            - Box 1, 2, 3: Distinct Soft Ivory Gradient with Emerald Borders
+            - Box 4, 5: Distinct Premium Amber-Emerald Highlights with Golden accents
+        */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 pt-2">
+          {/* 1. Total Key (Group A - Global Stats) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#f4faf6] to-[#e8f5ed] text-gray-900 border-2 border-emerald-400/40 shadow-lg flex flex-col justify-between hover:scale-[1.02] transition-all group">
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-emerald-800">
                 {(t.hero.stats as any).totalKey || "TOTAL KEY"}
               </span>
+              <div className="w-7 h-7 rounded-xl bg-emerald-100/80 flex items-center justify-center text-emerald-700">
+                <Key className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
               {totalKeys.toLocaleString()}
             </div>
+            <div className="text-[10px] text-emerald-700 font-semibold mt-1">Verified repository</div>
           </div>
 
-          {/* 2. Total Used */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <TrendingUp className="w-4 h-4 text-emerald-600" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800">
+          {/* 2. Total Used (Group A - Global Stats) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#f4faf6] to-[#e8f5ed] text-gray-900 border-2 border-emerald-400/40 shadow-lg flex flex-col justify-between hover:scale-[1.02] transition-all group">
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-emerald-800">
                 {(t.hero.stats as any).totalUsed || "TOTAL USED"}
               </span>
+              <div className="w-7 h-7 rounded-xl bg-emerald-100/80 flex items-center justify-center text-emerald-700">
+                <TrendingUp className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
               {totalUsed.toLocaleString()}
             </div>
+            <div className="text-[10px] text-emerald-700 font-semibold mt-1">Real-time redemptions</div>
           </div>
 
-          {/* 3. Site visits last 24h */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800 truncate">
+          {/* 3. Site visits last 24h (Group A - Global Stats) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-white via-[#f4faf6] to-[#e8f5ed] text-gray-900 border-2 border-emerald-400/40 shadow-lg flex flex-col justify-between hover:scale-[1.02] transition-all group col-span-2 sm:col-span-1">
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-emerald-800">
                 {(t.hero.stats as any).siteVisits24h || "24H VISITS"}
               </span>
+              <div className="w-7 h-7 rounded-xl bg-emerald-100/80 flex items-center justify-center">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
               {visits24h.toLocaleString()}
             </div>
+            <div className="text-[10px] text-emerald-700 font-semibold mt-1">Active pilgrims</div>
           </div>
 
-          {/* 4. Fresh Key */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <Sparkles className="w-4 h-4 text-amber-500" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800">
+          {/* 4. Fresh Key (Group B - Highlighted Special Gradient) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#0c3f22] via-[#09321b] to-[#041c0e] text-white border-2 border-amber-400/70 shadow-xl flex flex-col justify-between hover:scale-[1.02] transition-all group relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 w-16 h-16 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-amber-300">
                 {(t.hero.stats as any).freshKey || "FRESH KEY"}
               </span>
+              <div className="w-7 h-7 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+                <Sparkles className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-700 font-mono tabular-nums">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-amber-200 font-mono tabular-nums relative z-10">
               {freshKeys.toLocaleString()}
             </div>
+            <div className="text-[10px] text-amber-300/90 font-bold mt-1 relative z-10">Available to claim</div>
           </div>
 
-          {/* 5. I Used */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800">
+          {/* 5. I Used (Group B - Personal Activity Card) */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-[#124227] via-[#0a301a] to-[#051f10] text-white border-2 border-emerald-400/60 shadow-xl flex flex-col justify-between hover:scale-[1.02] transition-all group relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 w-16 h-16 bg-emerald-400/10 rounded-full blur-xl pointer-events-none" />
+            <div className="flex items-center justify-between gap-1 mb-2 relative z-10">
+              <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase text-emerald-300">
                 {(t.hero.stats as any).iUsed || "I USED"}
               </span>
+              <div className="w-7 h-7 rounded-xl bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-emerald-950 font-mono tabular-nums">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-white font-mono tabular-nums relative z-10">
               {iUsedCount.toLocaleString()}
             </div>
-          </div>
-
-          {/* 6. My IP Address */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-white/95 text-gray-900 border border-emerald-100 shadow-md flex flex-col justify-between hover:shadow-lg transition-all group">
-            <div className="flex items-center justify-between gap-1 mb-1 text-emerald-700">
-              <Globe2 className="w-4 h-4 text-emerald-600" />
-              <span className="text-[10px] font-bold tracking-wider uppercase text-emerald-800">
-                {(t.hero.stats as any).myIp || "MY IP"}
-              </span>
-            </div>
-            <div className="text-xs sm:text-sm font-extrabold text-emerald-900 font-mono truncate">
-              {stats.client_ip || "103.131.180.76"}
-            </div>
+            <div className="text-[10px] text-emerald-300/90 font-bold mt-1 relative z-10">Saved in browser</div>
           </div>
         </div>
       </div>
