@@ -63,11 +63,13 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
   const codesHref = locale === "ar" ? "/ar/codes" : "/codes";
   const guideHref = locale === "ar" ? "/ar/guide" : "/guide";
   const blogHref = locale === "ar" ? "/ar/blog" : "/blog";
+  const faqHref = locale === "ar" ? "/ar/faq" : "/faq";
 
   const isHomeActive = pathname === "/" || pathname === "/ar" || pathname === "";
   const isCodesActive = pathname.includes("/codes");
   const isGuideActive = pathname.includes("/guide");
   const isBlogActive = pathname.includes("/blog");
+  const isFaqActive = pathname.includes("/faq");
 
   // Get current active language info
   const currentLang = SUPPORTED_LOCALES.find((l) => l.code === locale) || SUPPORTED_LOCALES[0];
@@ -148,12 +150,16 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
           >
             {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
           </Link>
-          <a
-            href="#faq"
-            className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-gray-700 hover:text-emerald-950 hover:bg-emerald-50/60 transition-all"
+          <Link
+            href={faqHref}
+            className={`px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all ${
+              isFaqActive
+                ? "bg-emerald-800 text-white shadow-xs"
+                : "text-gray-700 hover:text-emerald-950 hover:bg-emerald-50/60"
+            }`}
           >
-            {locale === "ar" ? "الأسئلة الشائعة" : locale === "bn" ? "জিজ্ঞাসা" : "FAQ"}
-          </a>
+            {locale === "ar" ? "الأسئلة الشائعة" : locale === "bn" ? "FAQ প্রশ্নাবলী" : "FAQ"}
+          </Link>
         </nav>
 
         {/* Right Section: Mobile App Button + Language Dropdown + Submit Key Button */}
@@ -266,7 +272,7 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="sm:hidden border-t border-gray-100 bg-white px-4 pt-3 pb-5 space-y-3 shadow-xl">
-          <div className="grid grid-cols-4 gap-1 p-1 bg-gray-50 rounded-xl">
+          <div className="grid grid-cols-5 gap-1 p-1 bg-gray-50 rounded-xl">
             <Link
               href={homeHref}
               onClick={() => setMobileMenuOpen(false)}
@@ -302,6 +308,15 @@ export function Header({ locale: propLocale, onOpenShareModal }: HeaderProps) {
               }`}
             >
               {(t.nav as any).blog || (locale === "ar" ? "المدونة" : "Blog")}
+            </Link>
+            <Link
+              href={faqHref}
+              onClick={() => setMobileMenuOpen(false)}
+              className={`text-center py-2 text-xs font-bold rounded-lg transition-colors ${
+                isFaqActive ? "bg-emerald-800 text-white" : "text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              FAQ
             </Link>
           </div>
 

@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/codes",
     "/guide",
+    "/faq",
     "/nusuk-competition",
     "/nusuk-key-not-working",
     "/find-nusuk-invite-code",
